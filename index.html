@@ -32,11 +32,7 @@
         .border-gold { border-color: #B08D57; }
         .hover\:bg-bronze-dark:hover { background-color: #9a754a; }
         .bg-warm-white { background-color: #F8F7F4; }
-        .hero-bg {
-            background-image: linear-gradient(to right, rgba(248, 247, 244, 0.95), rgba(248, 247, 244, 0.1)), url('https://i.imgur.com/mu2FeIW.jpeg');
-            background-size: cover;
-            background-position: center;
-        }
+        
         .nav-link {
             @apply text-gray-700 font-semibold px-4 py-2 rounded-md transition-all duration-300 bg-gray-200/50 border border-transparent;
         }
@@ -72,7 +68,7 @@
             @apply bg-gold text-white hover:bg-bronze-dark;
         }
         .btn-secondary {
-            @apply bg-navy text-white;
+            @apply bg-white text-navy hover:bg-gray-200;
         }
         .fade-in-up {
             opacity: 0;
@@ -111,6 +107,9 @@
         .header-text-shadow {
             text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
+        .hero-text-shadow {
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body class="bg-warm-white">
@@ -147,14 +146,19 @@
 
     <main>
         <!-- Section 1: Hero -->
-        <section id="home" class="h-screen flex items-center hero-bg">
-            <div class="container mx-auto px-6">
-                <div class="max-w-xl text-navy fade-in-up">
-                    <h1 class="font-lora text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">Your Next Furnished Home Awaits.</h1>
-                    <p class="text-xl md:text-2xl mt-4 font-lora italic text-gray-700">In the meantime, you matter.</p>
-                    <div class="mt-10 flex flex-col sm:flex-row gap-4">
+        <section id="home" class="h-screen flex items-center relative overflow-hidden text-white">
+            <video autoplay loop muted playsinline poster="https://i.imgur.com/mu2FeIW.jpeg" class="absolute z-0 w-full h-full object-cover">
+                <source src="https://files.streamable.com/amxcaq.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="absolute inset-0 bg-navy/70 z-10"></div>
+            <div class="container mx-auto px-6 relative z-20">
+                <div class="max-w-2xl text-center mx-auto fade-in-up">
+                    <h1 class="font-lora text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-white hero-text-shadow">Your Home Away From Home, Redefined.</h1>
+                    <p class="text-xl md:text-2xl mt-4 font-lora italic text-white/90 hero-text-shadow">In the meantime, you matter.</p>
+                    <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                          <a href="#property" class="btn btn-primary text-center">View Properties</a>
-                         <a href="#contact" class="btn btn-secondary text-center">Contact Us</a>
+                         <a href="#contact" class="btn bg-white/90 text-navy hover:bg-white text-center">Contact Us</a>
                     </div>
                 </div>
             </div>
