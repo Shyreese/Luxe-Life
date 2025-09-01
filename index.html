@@ -1,617 +1,259 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Home Away From Home, Redefined</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://i.imgur.com; video-src 'self' https://assets.mixkit.co; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-src 'none';">
+    <title>Luxe Life Properties - Premium Furnished Rentals</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #ecf0f1;
-            --text-color: #34495e;
-            --white-color: #ffffff;
-            --light-gray: #bdc3c7;
+            --header-height: 88px;
         }
-
-        /* --- Global Styles --- */
         html {
+            scroll-padding-top: var(--header-height);
             scroll-behavior: smooth;
         }
-
         body {
             font-family: 'Montserrat', sans-serif;
+            color: #383838;
+            background-color: #F8F7F4;
             margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
         }
-
-        h1,
-        h2,
-        h3 {
+        .font-playfair {
             font-family: 'Playfair Display', serif;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        section {
-            padding: 4rem 0;
-        }
-
-        /* --- Header --- */
-        header {
-            background-color: var(--white-color);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            width: 100%;
-        }
-
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-        }
-
-        .nav-logo {
+        .font-lora {
             font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            text-decoration: none;
         }
-
-        .nav-links {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--primary-color);
-            font-weight: bold;
-            transition: color 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--secondary-color);
-        }
-
-        /* --- Hero Section --- */
-        .hero {
-            position: relative;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            overflow: hidden;
-        }
+        .bg-navy { background-color: #0A2342; }
+        .text-navy { color: #0A2342; }
+        .bg-sage { background-color: #A2A182; }
+        .bg-gold { background-color: #B08D57; }
+        .text-gold { color: #B08D57; }
+        .border-gold { border-color: #B08D57; }
+        .hover\:bg-bronze-dark:hover { background-color: #9a754a; }
+        .bg-warm-white { background-color: #F8F7F4; }
         
-        #hero-video {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -1;
-            transform: translateX(-50%) translateY(-50%);
-            object-fit: cover;
+        .gallery-image {
+            transition: opacity 0.5s ease-in-out;
         }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            padding: 2rem;
-            background-color: rgba(0, 0, 0, 0.4); /* Overlay for text readability */
-            border-radius: 10px;
+        .spinner {
+            border-top-color: #FFFFFF;
+            animation: spin 1s linear infinite;
         }
-        
-        /* Updated styles for hero text */
-        #home .hero-content h1,
-        #home .hero-content p {
-            color: var(--white-color);
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            font-weight: 400;
-        }
-        
-        /* --- Gallery Section --- */
-        #gallery {
-            background-color: var(--white-color);
-        }
-        
-        #gallery h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            color: var(--primary-color);
-        }
-
-        .gallery-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .image-display-container {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        #image-display {
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: block;
-        }
-        
-        .nav-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            padding: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
-
-        .prev { left: 1rem; }
-        .next { right: 1rem; }
-
-        .thumbnails {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 0.5rem;
-        }
-
-        .thumbnails img {
-            width: 100%;
-            height: 75px;
-            object-fit: cover;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .thumbnails img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .thumbnails img.active {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 10px var(--secondary-color);
-        }
-        
-        /* --- Footer --- */
-        footer {
-            background-color: var(--primary-color);
-            color: var(--light-gray);
-            padding: 3rem 0 1rem;
-        }
-        
-        .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        .footer-column {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .footer-column h3 {
-            color: var(--white-color);
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-column ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-column ul a {
-            color: var(--light-gray);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-column ul a:hover {
-            color: var(--white-color);
-            cursor: pointer;
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 1rem;
-            border-top: 1px solid #34495e;
-        }
-        
-        /* --- Modal Styles --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            padding: 1rem;
-        }
-
-        .modal-overlay.hidden {
+        .fade-in-up {
             opacity: 0;
-            pointer-events: none;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
         }
-
+        .fade-in-up.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
         .modal-content {
-            background-color: var(--white-color);
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 750px;
-            max-height: 85vh;
-            overflow-y: auto;
-            position: relative;
-            transform: scale(1);
-            transition: transform 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .testimonial-carousel {
+            scroll-snap-type: x mandatory;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        .testimonial-carousel::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+        .testimonial-card {
+            scroll-snap-align: center;
+            flex: 0 0 100%;
+        }
+        @media (min-width: 768px) {
+            .testimonial-card {
+                flex: 0 0 calc(50% - 1rem);
+            }
+        }
+        @media (min-width: 1024px) {
+            .testimonial-card {
+                flex: 0 0 calc(33.333% - 1rem);
+            }
+        }
+        .header-text-shadow {
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .hero-text-shadow {
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
         }
 
-        .modal-overlay.hidden .modal-content {
-            transform: scale(0.95);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 2.5rem;
-            font-weight: 300;
-            line-height: 1;
-            cursor: pointer;
-            color: #888;
-            transition: color 0.2s ease;
-        }
-        
-        .modal-close:hover {
-            color: #333;
-        }
-
-        #modal-title {
-            margin-top: 0;
-            font-family: 'Playfair Display', serif;
-            color: var(--primary-color);
-            padding-right: 40px; /* Space for close button */
-        }
-
-        #modal-body {
-            margin-top: 20px;
-            color: var(--text-color);
-            line-height: 1.7;
-        }
-
-        #modal-body h4 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-        #modal-body p, #modal-body ul {
-            margin-bottom: 15px;
-        }
-        #modal-body li {
-            margin-left: 20px;
-            margin-bottom: 5px;
-        }
-
+        /* Basic fallback styles for components due to CDN removal */
+        .container { max-width: 1280px; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+        .btn { font-weight: bold; padding: 0.75rem 2rem; border-radius: 0.375rem; transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); }
+        .btn-primary { background-color: #B08D57; color: white; }
+        .btn:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); transform: translateY(-0.25rem); }
+        .hidden { display: none; }
+        input, textarea, select { border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
     </style>
 </head>
+<body class="bg-warm-white">
 
-<body>
-
-    <header>
-        <nav class="navbar">
-            <a href="#home" class="nav-logo">Serene Escapes</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#gallery">Gallery</a></li>
-            </ul>
-        </nav>
+    <header id="header" style="background-color: rgba(248, 247, 244, 0.9); backdrop-filter: blur(10px); position: fixed; top: 0; left: 0; right: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; padding-bottom: 1rem;">
+            <div style="flex: 1;">
+                <a href="#" style="display: flex; align-items: center; gap: 1rem;">
+                    <img src="https://i.imgur.com/J6C1KBY.png" alt="Luxe Life Properties Logo" style="height: 3rem;">
+                </a>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                 <a href="#" class="font-playfair" style="font-size: 1.875rem; font-weight: 600; color: #B08D57; letter-spacing: 0.05em; text-decoration: none;">Luxe Life Properties</a>
+            </div>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <nav id="nav-menu" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <a href="#property" class="nav-link">Properties</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
+                <button id="mobile-menu-button" class="lg:hidden text-navy">
+                    <svg style="width: 1.75rem; height: 1.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
     </header>
 
     <main>
-        <section id="home" class="hero">
-            <video autoplay loop muted playsinline id="hero-video">
-                <source src="https://files.streamable.com/amxcaq.mp4" type="video/mp4">
+        <section id="home" style="height: 100vh; position: relative; overflow: hidden; color: white;">
+            <video autoplay loop muted playsinline style="position: absolute; z-index: 0; width: 100%; height: 100%; object-fit: cover;">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-furnished-apartment-with-a-modern-style-47401-large.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <div class="hero-content">
-                <h1>Your Home Away From Home, Redefined.</h1>
-                <p>In the meantime, you matter.</p>
-            </div>
-        </section>
-
-        <section id="gallery">
-            <div class="container">
-                <h2>Photo Gallery</h2>
-                <div class="gallery-container">
-                    <div class="image-display-container">
-                        <img id="image-display" src="https://i.imgur.com/VgWemC1.jpeg" alt="Main gallery view">
-                        <button class="nav-button prev">&lt;</button>
-                        <button class="nav-button next">&gt;</button>
+            <div style="position: absolute; inset: 0; background-color: rgba(10, 35, 66, 0.7); z-index: 10;"></div>
+            <div class="container" style="position: relative; z-index: 20; height: 100%; display: flex; align-items: center; justify-content: center;">
+                <div style="max-width: 42rem; text-align: center; margin: auto;">
+                    <h1 class="font-lora hero-text-shadow" style="font-size: 3.75rem; font-weight: bold; line-height: 1.1;">Your Home Away From Home, Redefined.</h1>
+                    <p class="hero-text-shadow" style="font-size: 1.5rem; margin-top: 1rem; font-family: 'Playfair Display', serif; font-style: italic; color: rgba(255, 255, 255, 0.9);">In the meantime, you matter.</p>
+                    <div style="margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; justify-content: center;">
+                         <a href="#property" class="btn btn-primary" style="text-align:center; text-decoration: none;">View Properties</a>
+                         <a href="#contact" class="btn" style="background-color:rgba(255,255,255,0.9); color: #0A2342; text-align:center; text-decoration: none;">Contact Us</a>
                     </div>
-                    <div class="thumbnails">
-                        </div>
                 </div>
             </div>
         </section>
 
-    </main>
+        <section id="why-us" style="padding-top: 5rem; padding-bottom: 5rem; background-color: white;">
+            <div class="container" style="text-align: center;">
+                <h2 class="font-lora text-navy" style="font-size: 2.25rem; font-weight: bold;">The Luxe Life Difference</h2>
+                <p style="margin-top: 1rem; font-size: 1.125rem; color: #4a5568; max-width: 48rem; margin-left: auto; margin-right: auto;">We provide more than just a place to stay. We provide a seamless living experience designed for the modern professional.</p>
+                <div style="margin-top: 4rem; display: grid; grid-template-columns: repeat(1, 1fr); gap: 3rem;">
+                     <div style="display: flex; flex-direction: column; align-items: center;">
+                         <div style="display:flex; align-items:center; justify-content:center; width:5rem; height:5rem; border-radius:9999px; background-color:rgba(176,141,87,0.1); color:#B08D57; margin-bottom:1rem; font-size:2.25rem;">✓</div>
+                         <h3 style="font-size: 1.25rem; font-weight: bold; color: #0A2342;">Move-In Ready Homes</h3>
+                         <p style="margin-top: 0.5rem; color: #4a5568;">Each property is fully furnished with premium furniture, high-speed Wi-Fi, and all utilities included.</p>
+                     </div>
+                     <div style="display: flex; flex-direction: column; align-items: center;">
+                         <div style="display:flex; align-items:center; justify-content:center; width:5rem; height:5rem; border-radius:9999px; background-color:rgba(176,141,87,0.1); color:#B08D57; margin-bottom:1rem; font-size:2.25rem;">★</div>
+                         <h3 style="font-size: 1.25rem; font-weight: bold; color: #0A2342;">Hospitality Focused</h3>
+                         <p style="margin-top: 0.5rem; color: #4a5568;">Our team is dedicated to providing exceptional service and ensuring your comfort throughout your stay.</p>
+                     </div>
+                     <div style="display: flex; flex-direction: column; align-items: center;">
+                         <div style="display:flex; align-items:center; justify-content:center; width:5rem; height:5rem; border-radius:9999px; background-color:rgba(176,141,87,0.1); color:#B08D57; margin-bottom:1rem; font-size:2.25rem;">📍</div>
+                         <h3 style="font-size: 1.25rem; font-weight: bold; color: #0A2342;">Prime Locations</h3>
+                         <p style="margin-top: 0.5rem; color: #4a5568;">Our properties are strategically located in desirable Sacramento neighborhoods with easy access to key destinations.</p>
+                     </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="property" style="padding: 5rem 0;">
+            <div class="container">
+                <div style="text-align: center; max-width: 48rem; margin: 0 auto;">
+                    <h2 class="font-lora text-navy" style="font-size: 2.25rem; font-weight: bold;">Our Available Properties</h2>
+                    <p style="margin-top: 1rem; font-size: 1.125rem; color: #4a5568;">
+                        Explore our flagship home, The Amara Retreat. We are excited to expand our portfolio with more curated properties coming soon.
+                    </p>
+                </div>
 
-    <footer>
-        <div class="footer-content">
-            <div class="footer-column">
-                <h3>Navigation</h3>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#gallery">Gallery</a></li>
-                </ul>
+                <div style="margin-top: 4rem; max-width: 64rem; margin: 4rem auto; background-color: white; border-radius: 0.75rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;">
+                    <div style="padding: 2rem;">
+                         <h3 class="font-lora text-navy" style="font-size: 1.5rem; font-weight: bold;">The Amara Retreat</h3>
+                         <p style="color: #6b7280; margin-top: 0.25rem;">North Natomas, Sacramento, CA 95835</p>
+                         <p style="margin-top: 1rem; color: #4a5568;">A serene 2-bedroom, 2-bathroom condominium unit designed for comfort and convenience. Perfect for unwinding after a long day, with all the comforts of home and then some.</p>
+                         <button class="btn btn-primary" style="margin-top: 1.5rem;">Details Unavailable</button>
+                    </div>
+                </div>
             </div>
-            <div class="footer-column">
-                <h3>Contact</h3>
-                <ul>
-                    <li><a href="mailto:contact@serene-escapes.com">Email Us</a></li>
-                    <li><span>(555) 123-4567</span></li>
-                </ul>
+        </section>
+
+        <section id="about" style="padding: 5rem 0; background-color: white;">
+            <div class="container">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+                    <div>
+                        <img src="https://i.imgur.com/lcEZLrg.png" alt="Luxe Life Properties Logo" style="border-radius: 0.5rem; width: 100%; height: auto; object-fit: contain; padding: 2rem;">
+                    </div>
+                    <div>
+                        <h2 class="font-lora text-navy" style="font-size: 2.25rem; font-weight: bold;">Hospitality is at the Heart of What We Do</h2>
+                        <h3 class="font-lora text-navy" style="font-size: 1.5rem; font-weight: 600; margin-top: 2rem;">Our Mission</h3>
+                        <p style="margin-top: 0.5rem; color: #4a5568; line-height: 1.625;">To create warm, thoughtfully prepared spaces that feel like home. Honoring those who serve our community through comfort, care, and calm. Because in the meantime, you matter.</p>
+                        <h3 class="font-lora text-navy" style="font-size: 1.5rem; font-weight: 600; margin-top: 1.5rem;">Our Story</h3>
+                        <p style="margin-top: 0.5rem; color: #4a5568;">Our journey in property management is driven by a passion for creating exceptional living experiences. While we begin with our flagship Amara Retreat, Luxe Life Properties is structured for growth with plans to expand our portfolio of curated homes. We are committed to building a brand synonymous with trust, comfort, and genuine care for every tenant.</p>
+                    </div>
+                </div>
             </div>
-            <div class="footer-column">
-                <h3>Compliance</h3>
-                <ul id="compliance-links">
-                    <li><a href="#" data-modal-target="tos">Terms of Service</a></li>
-                    <li><a href="#" data-modal-target="privacy">Privacy Policy</a></li>
-                    <li><a href="#" data-modal-target="accessibility">Accessibility Statement</a></li>
-                </ul>
+        </section>
+        
+        <section id="contact" style="padding: 5rem 0;">
+             <div class="container">
+                 <div style="text-align: center; max-width: 48rem; margin: 0 auto;">
+                     <h2 class="font-lora text-navy" style="font-size: 2.25rem; font-weight: bold;">Get In Touch</h2>
+                     <p style="margin-top: 1rem; font-size: 1.125rem; color: #4a5568;">
+                         Ready to take the next step? Use the form below to inquire about availability or ask a question. We aim to respond to all inquiries within 24 business hours.
+                     </p>
+                 </div>
+                 <div style="margin-top: 3rem; max-width: 42rem; margin: 3rem auto; background-color: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                     <form id="contact-form">
+                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                             <div>
+                                 <label for="name">Name</label>
+                                 <input type="text" id="name" name="name" style="width: 100%;" required>
+                             </div>
+                             <div>
+                                 <label for="email">Email</label>
+                                 <input type="email" id="email" name="email" style="width: 100%;" required>
+                             </div>
+                             <div>
+                                 <label for="move-in-date">Move-in Date</label>
+                                 <input type="date" id="move-in-date" name="move-in-date" style="width: 100%;">
+                             </div>
+                              <div>
+                                 <label for="move-out-date">Move-out Date</label>
+                                 <input type="date" id="move-out-date" name="move-out-date" style="width: 100%;">
+                             </div>
+                         </div>
+                         <div style="margin-top: 1.5rem;">
+                             <label for="message">Message</label>
+                             <textarea id="message" name="message" rows="4" style="width: 100%;"></textarea>
+                         </div>
+                         <div style="margin-top: 1.5rem; text-align: right;">
+                             <button type="submit" class="btn btn-primary">
+                                 Send Inquiry
+                             </button>
+                         </div>
+                     </form>
+                     <p style="text-align:center; margin-top:1rem;">Form submission is disabled on this preview.</p>
+                 </div>
+             </div>
+        </section>
+    </main>
+    
+    <footer class="bg-navy" style="color: white;">
+        <div class="container" style="padding: 3rem 1.5rem;">
+            <div style="text-align: center; border-top: 1px solid #4a5568; padding-top: 1.5rem; color: #a0aec0; font-size: 0.875rem;">
+                <p>© 2025 Luxe Life Properties. All Rights Reserved.</p>
             </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Serene Escapes. All rights reserved.</p>
         </div>
     </footer>
-    
-    <div id="compliance-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button class="modal-close" aria-label="Close modal">&times;</button>
-            <h2 id="modal-title"></h2>
-            <div id="modal-body"></div>
-        </div>
-    </div>
 
-
-    <script type="module">
-        // ======== GALLERY SCRIPT (UPDATED) ========
-        const images = [
-            'https://i.imgur.com/VgWemC1.jpeg', // Drone Shot 1
-            'https://i.imgur.com/CMGlCLk.jpeg', // Drone Shot 2
-            'https://i.imgur.com/bqlXyeM.jpeg', // Front Door
-            'https://i.imgur.com/ISZOzuh.jpeg', // Living Room 1
-            'https://i.imgur.com/ul4yWx6.jpeg', // Living Room 2
-            'https://i.imgur.com/4bvmDFb.jpeg', // Living Room 3
-            'https://i.imgur.com/2Zl8a1T.jpeg', // Dining Area
-            'https://i.imgur.com/j02Yxho.jpeg', // Kitchen 1
-            'https://i.imgur.com/zjYLxoA.jpeg', // Kitchen 2
-            'https://i.imgur.com/ogzjYEe.jpeg', // Hallway
-            'https://i.imgur.com/q8I17L3.jpeg', // Master Bedroom 1
-            'https://i.imgur.com/OG7TLIV.jpeg', // Master Bedroom 2
-            'https://i.imgur.com/1GdYe99.jpeg', // Master Bath 1
-            'https://i.imgur.com/KZKJNNT.jpeg', // Master Bath 2
-            'https://i.imgur.com/kfeVMFQ.jpeg', // Guest Bedroom 1
-            'https://i.imgur.com/y0A0Mfx.jpeg', // Guest Bedroom 2
-            'https://i.imgur.com/Haj6bEs.jpeg', // Guest Bath
-            'https://i.imgur.com/xqDv0DG.jpeg', // Office Nook
-            'https://i.imgur.com/KbVzUdE.jpeg', // Laundry
-            'https://i.imgur.com/ZDDtHte.jpeg', // Balcony
-            'https://i.imgur.com/ST6rQXA.jpeg', // Garage Marble Floor
-            'https://i.imgur.com/uhTqLyj.jpeg', // Drone Shot 3
-            'https://i.imgur.com/Sks7zul.jpeg'  // Drone Shot 4
-        ];
-
-        const imageDisplay = document.getElementById('image-display');
-        const thumbnailsContainer = document.querySelector('.thumbnails');
-        const prevButton = document.querySelector('.prev');
-        const nextButton = document.querySelector('.next');
-        let currentIndex = 0;
-
-        function updateMainImage(index) {
-            imageDisplay.src = images[index];
-            currentIndex = index;
-            updateActiveThumbnail();
-        }
-
-        function updateActiveThumbnail() {
-            document.querySelectorAll('.thumbnails img').forEach((img, i) => {
-                img.classList.toggle('active', i === currentIndex);
-                if (i === currentIndex) {
-                    img.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            });
-        }
-
-        images.forEach((src, index) => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = `View ${index + 1}`;
-            img.addEventListener('click', () => updateMainImage(index));
-            thumbnailsContainer.appendChild(img);
-        });
-
-        prevButton.addEventListener('click', () => {
-            const newIndex = (currentIndex - 1 + images.length) % images.length;
-            updateMainImage(newIndex);
-        });
-
-        nextButton.addEventListener('click', () => {
-            const newIndex = (currentIndex + 1) % images.length;
-            updateMainImage(newIndex);
-        });
-        
-        // Initialize first image and thumbnail
-        updateMainImage(0);
-
-
-        // ======== MODAL SCRIPT (ADDED) ========
-        const modalContentData = {
-            tos: {
-                title: "Terms of Service",
-                content: `
-                    <h4>1. Acceptance of Terms</h4>
-                    <p>By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this website's particular services, you shall be subject to any posted guidelines or rules applicable to such services.</p>
-                    <h4>2. Use of the Site</h4>
-                    <p>This site and its components are offered for informational purposes only; this site shall not be responsible or liable for the accuracy, usefulness or availability of any information transmitted or made available via the site, and shall not be responsible or liable for any error or omissions in that information.</p>
-                    <h4>3. Intellectual Property</h4>
-                    <p>The Site and its original content, features, and functionality are owned by the site owner and are protected by international copyright, trademark, and other intellectual property or proprietary rights laws.</p>
-                    <h4>4. Termination</h4>
-                    <p>We may terminate your access to the site, without cause or notice, which may result in the forfeiture and destruction of all information associated with your account. All provisions of this Agreement that, by their nature, should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.</p>
-                    <h4>5. Governing Law</h4>
-                    <p>This Agreement is governed in accordance with the laws of California, United States.</p>
-                `
-            },
-            privacy: {
-                title: "Privacy Policy",
-                content: `
-                    <h4>1. Information Collection</h4>
-                    <p>We are the sole owners of the information collected on this site. We only have access to/collect information that you voluntarily give us via email or other direct contact from you. We will not sell or rent this information to anyone.</p>
-                    <h4>2. Information Use</h4>
-                    <p>We will use your information to respond to you, regarding the reason you contacted us. We will not share your information with any third party outside of our organization, other than as necessary to fulfill your request.</p>
-                    <h4>3. Your Access to and Control Over Information</h4>
-                    <p>You may opt out of any future contacts from us at any time. You can do the following at any time by contacting us via the email address or phone number provided on our website: see what data we have about you, if any; change/correct any data we have about you; have us delete any data we have about you; express any concern you have about our use of your data.</p>
-                    <h4>4. Security</h4>
-                    <p>We take precautions to protect your information. When you submit sensitive information via the website, your information is protected both online and offline.</p>
-                `
-            },
-            accessibility: {
-                title: "Accessibility Statement",
-                content: `
-                    <p>We are committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards.</p>
-                    <h4>Conformance Status</h4>
-                    <p>The Web Content Accessibility Guidelines (WCAG) defines requirements for designers and developers to improve accessibility for people with disabilities. We aim for conformance with WCAG 2.1 level AA. </p>
-                    <h4>Feedback</h4>
-                    <p>We welcome your feedback on the accessibility of this website. Please let us know if you encounter accessibility barriers:</p>
-                    <ul>
-                        <li>E-mail: contact@serene-escapes.com</li>
-                        <li>Phone: (555) 123-4567</li>
-                    </ul>
-                    <p>We try to respond to feedback within 5 business days.</p>
-                    <h4>Technical Specifications</h4>
-                    <p>Accessibility of this website relies on the following technologies to work with the particular combination of web browser and any assistive technologies or plugins installed on your computer: HTML, CSS, JavaScript. These technologies are relied upon for conformance with the accessibility standards used.</p>
-                `
-            }
-        };
-
-        const modal = document.getElementById('compliance-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        const closeModalBtn = document.querySelector('.modal-close');
-        const complianceLinks = document.getElementById('compliance-links');
-
-        const openModal = (type) => {
-            const content = modalContentData[type];
-            if (content) {
-                modalTitle.textContent = content.title;
-                modalBody.innerHTML = content.content;
-                modal.classList.remove('hidden');
-            }
-        };
-
-        const closeModal = () => {
-            modal.classList.add('hidden');
-        };
-
-        complianceLinks.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetLink = e.target.closest('a');
-            if (targetLink && targetLink.dataset.modalTarget) {
-                openModal(targetLink.dataset.modalTarget);
-            }
-        });
-
-        closeModalBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            // Closes modal if user clicks on the dark overlay background
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
-    </script>
 </body>
-
 </html>
