@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxe Life Properties - Premium Furnished Rentals</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --header-height: 88px; /* Corresponds to py-4 on header */
+        }
+        html {
+            scroll-padding-top: var(--header-height);
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: #383838;
+            background-color: #F8F7F4; /* A warmer off-white */
+        }
+        .font-playfair {
+            font-family: 'Playfair Display', serif;
+        }
+        .font-lora {
+            font-family: 'Playfair Display', serif; /* Using Playfair as a substitute for Lora for consistency */
+        }
+        .bg-navy { background-color: #0A2342; }
+        .text-navy { color: #0A2342; }
+        .bg-sage { background-color: #A2A182; }
+        .bg-gold { background-color: #B08D57; }
+        .text-gold { color: #B08D57; }
+        .border-gold { border-color: #B08D57; }
+        .hover\:bg-bronze-dark:hover { background-color: #9a754a; }
+        .bg-warm-white { background-color: #F8F7F4; }
+        
+        .nav-link {
+            @apply text-gray-700 font-semibold px-4 py-2 rounded-md transition-all duration-300 bg-gray-200/50 border border-transparent;
+        }
+        .nav-link:hover {
+            @apply bg-gold/20 text-gold border-gold/30;
+        }
+        .nav-link-active {
+            @apply bg-gold/20 text-gold border-gold/30;
+        }
+        .mobile-nav-btn {
+            @apply block w-full text-center py-4 px-6 text-gray-700 font-semibold bg-gray-50/50 border-b border-gray-200 transition-colors duration-300;
+        }
+        .mobile-nav-btn:hover {
+            @apply bg-gold/20 text-gold;
+        }
+        .gallery-image {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .spinner {
+            border-top-color: #FFFFFF;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .btn {
+            @apply font-bold py-3 px-8 rounded-md text-lg transition-all duration-300 ease-in-out shadow-md;
+        }
+        .btn-sm {
+            @apply py-2 px-6 text-base;
+        }
+        .btn:hover {
+            @apply shadow-xl -translate-y-1;
+        }
+        .btn:disabled {
+            @apply opacity-50 cursor-not-allowed shadow-none transform-none;
+        }
+        .btn-primary {
+            @apply bg-gold text-white hover:bg-bronze-dark;
+        }
+        .btn-secondary {
+            @apply bg-white text-navy hover:bg-gray-200 border border-transparent;
+        }
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .fade-in-up.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Modal Styles */
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal-body {
+            @apply max-h-[70vh] overflow-y-auto pr-4 -mr-4 text-gray-600;
+        }
+        .testimonial-carousel {
+            scroll-snap-type: x mandatory;
+            overflow-x: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        .testimonial-carousel::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+        .testimonial-card {
+            scroll-snap-align: center;
+            flex: 0 0 100%;
+        }
+        @media (min-width: 768px) {
+            .testimonial-card {
+                flex: 0 0 calc(50% - 1rem); /* Two cards with a gap */
+            }
+        }
+        @media (min-width: 1024px) {
+             /* MODIFIED: Show 3 cards on large screens */
+            .testimonial-card {
+                flex: 0 0 calc(33.333% - 1rem); /* Three cards with a gap */
+            }
+        }
+        .header-text-shadow {
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .hero-text-shadow {
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="bg-warm-white">
+
+    <header id="header" class="bg-warm-white/90 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 shadow-md transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex-1">
+                <a href="#" class="flex items-center space-x-4">
+                    <img src="https://i.imgur.com/J6C1KBY.png" alt="Luxe Life Properties Logo" class="h-12">
+                </a>
+            </div>
+            <div class="hidden md:flex flex-1 justify-center">
+                 <a href="#" class="font-playfair text-3xl font-semibold text-gold tracking-wider whitespace-nowrap header-text-shadow">Luxe Life Properties</a>
+            </div>
+            <div class="flex-1 flex justify-end">
+                <nav class="hidden lg:flex items-center space-x-2" id="nav-menu">
+                    <a href="#property" class="nav-link">Properties</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
+                <button id="mobile-menu-button" class="lg:hidden text-navy">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden lg:hidden bg-warm-white/95 backdrop-blur-md">
+            <a href="#property" class="mobile-nav-link mobile-nav-btn">Available Properties</a>
+            <a href="#about" class="mobile-nav-link mobile-nav-btn">About</a>
+            <a href="#residents" class="mobile-nav-link mobile-nav-btn">For Residents</a>
+            <a href="#partners" class="mobile-nav-link mobile-nav-btn">Partners</a>
+            <a href="#contact" class="mobile-nav-link mobile-nav-btn">Contact</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="h-screen relative overflow-hidden text-white">
+            <video autoplay loop muted playsinline class="absolute z-0 w-full h-full object-cover">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-furnished-apartment-with-a-modern-style-47401-large.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="absolute inset-0 bg-navy/70 z-10"></div>
+            <div class="container mx-auto px-6 relative z-20 h-full flex items-center justify-center">
+                <div class="max-w-2xl text-center mx-auto fade-in-up">
+                    <h1 class="font-lora text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-white hero-text-shadow">Your Home Away From Home, Redefined.</h1>
+                    <p class="text-xl md:text-2xl mt-4 font-lora italic text-white/90 hero-text-shadow">In the meantime, you matter.</p>
+                    <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                         <a href="#property" class="btn btn-primary text-center">View Properties</a>
+                         <a href="#contact" class="btn bg-white/90 text-navy hover:bg-white text-center">Contact Us</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="why-us" class="py-20 md:py-28 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                 <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy fade-in-up">The Luxe Life Difference</h2>
+                 <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto fade-in-up" style="transition-delay: 100ms;">We provide more than just a place to stay. We provide a seamless living experience designed for the modern professional.</p>
+                 <div class="mt-16 grid md:grid-cols-3 gap-12">
+                     <div class="flex flex-col items-center fade-in-up" style="transition-delay: 200ms;">
+                        <div class="flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 text-gold mb-4 text-4xl">✓</div>
+                        <h3 class="text-xl font-bold text-navy">Move-In Ready Homes</h3>
+                        <p class="mt-2 text-gray-600">Each property is fully furnished with premium furniture, high-speed Wi-Fi, and all utilities included.</p>
+                     </div>
+                     <div class="flex flex-col items-center fade-in-up" style="transition-delay: 300ms;">
+                        <div class="flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 text-gold mb-4 text-4xl">★</div>
+                        <h3 class="text-xl font-bold text-navy">Hospitality Focused</h3>
+                        <p class="mt-2 text-gray-600">Our team is dedicated to providing exceptional service and ensuring your comfort throughout your stay.</p>
+                     </div>
+                     <div class="flex flex-col items-center fade-in-up" style="transition-delay: 400ms;">
+                         <div class="flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 text-gold mb-4 text-4xl">📍</div>
+                        <h3 class="text-xl font-bold text-navy">Prime Locations</h3>
+                        <p class="mt-2 text-gray-600">Our properties are strategically located in desirable Sacramento neighborhoods with easy access to key destinations.</p>
+                     </div>
+                 </div>
+            </div>
+        </section>
+        
+        <section id="property" class="py-20 md:py-28 bg-warm-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center max-w-3xl mx-auto fade-in-up">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">Our Available Properties</h2>
+                     <p class="mt-4 text-lg text-gray-600">
+                        Explore our flagship home, The Amara Retreat. We are excited to expand our portfolio with more curated properties coming soon.
+                    </p>
+                </div>
+
+                <div class="mt-16 max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden fade-in-up">
+                    <div class="grid md:grid-cols-2">
+                        <div class="relative">
+                           <img id="gallery-main-image" src="https://i.imgur.com/VgWemC1.jpeg" alt="Main gallery view of the property" class="gallery-image w-full h-full object-cover">
+                           <div class="absolute top-0 left-0 w-full h-full flex justify-between items-center p-4 bg-black/10">
+                                <button id="prev-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition"><</button>
+                                <button id="next-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition">></button>
+                            </div>
+                        </div>
+                        <div class="p-8 flex flex-col">
+                            <h3 class="font-lora text-2xl font-bold text-navy">The Amara Retreat</h3>
+                            <p class="text-md text-gray-500 mt-1">North Natomas, Sacramento, CA 95835</p>
+                            <p class="mt-4 text-gray-600 flex-grow">A serene 2-bedroom, 2-bathroom condominium unit designed for comfort and convenience. Perfect for unwinding after a long day, with all the comforts of home and then some.</p>
+                            <button id="details-toggle-btn" class="btn btn-primary mt-6 text-center">View Details & Gallery</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="property-details" class="hidden mt-28">
+                    <div class="lg:col-span-3">
+                        <h3 class="font-lora text-3xl font-bold text-navy mb-4">Photo Gallery</h3>
+                        <div id="thumbnail-container" class="grid grid-cols-3 md:grid-cols-5 gap-2">
+                        </div>
+                    </div>
+                    <div class="mt-12">
+                        <h3 class="font-lora text-3xl font-bold text-navy mb-4 text-center">Key Amenities</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Fully Furnished</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> All Utilities Included</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> In-Unit Washer & Dryer</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> High-Speed Wi-Fi</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Dedicated Workspace</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Pet-Friendly Options</div>
+                        </div>
+                    </div>
+                    <div class="mt-12 md:mt-16 grid md:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h3 class="font-lora text-3xl font-bold text-navy mb-4">Explore the Neighborhood</h3>
+                            <p class="mt-2 text-gray-600">Conveniently located in North Natomas, our property offers easy access to Sacramento International Airport (SMF), downtown Sacramento, and major medical centers. Ask our AI concierge for local recommendations!</p>
+                            <div class="mt-4">
+                                <div class="flex gap-2 mt-2">
+                                    <select id="concierge-select" class="flex-grow mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                                        <option value="top-rated local coffee shops">Coffee Shops</option>
+                                        <option value="great restaurants for a weeknight dinner">Restaurants</option>
+                                        <option value="quiet places to work or read">Quiet Spots</option>
+                                        <option value="scenic parks or trails for a weekend walk">Parks & Trails</option>
+                                    </select>
+                                    <button id="concierge-button" class="btn btn-sm btn-primary bg-gold text-white font-semibold px-4 py-2 mt-1 rounded-md hover:bg-bronze-dark transition-colors">✨ Ask</button>
+                                </div>
+                            </div>
+                            <div id="concierge-loading" class="hidden mt-4 flex items-center gap-2 text-gray-500"><div class="spinner w-5 h-5 border-2 border-gray-300 rounded-full"></div>Generating recommendations...</div>
+                            <div id="concierge-output" class="hidden mt-4 p-4 bg-white rounded-lg border text-gray-700"></div>
+                        </div>
+                         <div class="h-96 w-full rounded-lg overflow-hidden shadow-lg">
+                            <iframe src="http://googleusercontent.com/maps.google.com/8" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-20 md:py-28 bg-white">
+             <div class="container mx-auto px-6">
+                <div class="grid md:grid-cols-2 gap-16 items-center">
+                    <div class="fade-in-up">
+                        <img src="https://i.imgur.com/lcEZLrg.png" alt="Luxe Life Properties Logo" class="rounded-lg w-full h-auto object-contain p-8">
+                    </div>
+                    <div class="fade-in-up" style="transition-delay: 200ms;">
+                        <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">Hospitality is at the Heart of What We Do</h2>
+                        <h3 class="font-lora text-2xl font-semibold text-navy mt-8">Our Mission</h3>
+                        <p class="mt-2 text-gray-600 leading-relaxed">To create warm, thoughtfully prepared spaces that feel like home. Honoring those who serve our community through comfort, care, and calm. Because in the meantime, you matter.</p>
+                        <h3 class="font-lora text-2xl font-semibold text-navy mt-6">Our Story</h3>
+                        <p class="mt-2 text-gray-600">Our journey in property management is driven by a passion for creating exceptional living experiences. While we begin with our flagship Amara Retreat, Luxe Life Properties is structured for growth with plans to expand our portfolio of curated homes. We are committed to building a brand synonymous with trust, comfort, and genuine care for every tenant.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="testimonials" class="py-16 md:py-20 bg-warm-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center max-w-3xl mx-auto fade-in-up">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">What Our Guests Are Saying</h2>
+                </div>
+                <div class="mt-12 max-w-6xl mx-auto relative fade-in-up" style="transition-delay: 200ms;">
+                    <div id="testimonial-carousel" class="flex gap-x-6 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4">
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-yellow-500 text-2xl">★★★★★</span>
+                                    <span class="text-sm font-semibold text-gray-500">From Yelp</span>
+                                </div>
+                                <p class="text-base italic text-gray-700">"Our month-long stay was truly a pleasure... We highly recommend this property for anyone looking for a relaxing, secure, and well-equipped place to stay. Thank you Luxe Life Properties -- we will definitely be back!"</p>
+                                <p class="font-bold text-navy text-right mt-4">- Lucile, Inches Safety Solutions</p>
+                            </div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-yellow-500 text-2xl">★★★★★</span>
+                                    <span class="text-sm font-semibold text-gray-500">From Furnished Finder</span>
+                                </div>
+                                <p class="text-base italic text-gray-700">"Incredibly communicative, friendly, and professional—making the entire experience seamless... The interior is spotless, and the furniture is clean and comfortable, giving the space a welcoming, homey feel."</p>
+                                <p class="font-bold text-navy text-right mt-4">- Nesha</p>
+                            </div>
+                        </div>
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-yellow-500 text-2xl">★★★★★</span>
+                                    <span class="text-sm font-semibold text-gray-500">From Furnished Finder</span>
+                                </div>
+                                <p class="text-base italic text-gray-700">"This location was perfect for my needs! I travel a lot for my business... and need a residence that is move-in ready which is what this was. It is centrally located... I was grateful that there were no surprises... I would not hesitate to stay here again!"</p>
+                                <p class="font-bold text-navy text-right mt-4">- Kristina</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute top-1/2 -translate-y-1/2 flex justify-between w-full -mx-5 pointer-events-none">
+                        <button id="prev-testimonial" class="pointer-events-auto bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition shadow-md"><</button>
+                        <button id="next-testimonial" class="pointer-events-auto bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition shadow-md">></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="residents" class="py-20 md:py-28 bg-navy text-white">
+            <div class="container mx-auto px-6 text-center fade-in-up">
+                 <div id="resident-portal-logged-out">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold">Resident Portal</h2>
+                    <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">Access our portal for payments, maintenance requests, and direct communication with our team.</p>
+                    <div class="mt-8">
+                        <button id="login-modal-btn" class="btn btn-primary bg-white text-navy hover:bg-gray-200">Resident Login / Sign Up</button>
+                    </div>
+                 </div>
+                 <div id="resident-portal-logged-in" class="hidden">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold">Welcome Back, <span id="resident-name"></span></h2>
+                    <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">Your personal dashboard for managing your stay.</p>
+                    <div class="mt-12 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
+                        <div class="bg-white/10 p-6 rounded-lg">
+                            <h3 class="font-lora text-2xl font-bold">Pay Rent</h3>
+                            <p class="mt-2 text-white/80">Securely pay your rent online, view payment history, and set up auto-pay.</p>
+                            <button disabled class="mt-4 btn bg-gray-500 text-white/70 cursor-not-allowed opacity-50 w-full text-center">Pay Now (Coming Soon)</button>
+                        </div>
+                        <div class="bg-white/10 p-6 rounded-lg">
+                            <h3 class="font-lora text-2xl font-bold">Maintenance Request</h3>
+                            <p class="mt-2 text-white/80">Need something fixed? Submit and track maintenance requests with our team.</p>
+                            <button disabled class="mt-4 btn bg-gray-500 text-white/70 cursor-not-allowed opacity-50 w-full text-center">Submit Request (Coming Soon)</button>
+                        </div>
+                    </div>
+                     <button id="logout-btn" class="mt-12 btn btn-secondary border-white text-white hover:bg-white hover:text-navy">Log Out</button>
+                 </div>
+            </div>
+        </section>
+
+        <section id="partners" class="py-20 md:py-28 bg-white">
+            <div class="container mx-auto px-6">
+              <div class="text-center max-w-3xl mx-auto fade-in-up">
+                <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">Become a Community Partner</h2>
+                <p class="mt-4 text-lg text-gray-600">
+                  We are building a network of trusted local businesses to enhance our guest experience. If you share our commitment to quality and service, we would love to connect. Click the button below to fill out our partner interest form.
+                </p>
+                 <div class="mt-8">
+                     <a href="https://docs.google.com/forms/d/1B0ep28I_d-07DQ6G43nI3Uvz0JPzhk4HQDQZsaiQWy8/viewform" target="_blank" class="btn btn-primary">
+                        Partner Interest Form
+                    </a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        <section id="contact" class="py-20 md:py-28 bg-warm-white">
+            <div class="container mx-auto px-6">
+                 <div class="text-center max-w-3xl mx-auto fade-in-up">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">Get In Touch</h2>
+                     <p class="mt-4 text-lg text-gray-600">
+                        Ready to take the next step? Use the form below to inquire about availability or ask a question. We aim to respond to all inquiries within 24 business hours.
+                    </p>
+                </div>
+                <div class="mt-12 max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-xl fade-in-up">
+                    <form id="contact-form">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                                <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold" required>
+                            </div>
+                            <div>
+                                <label for="move-in-date" class="block text-sm font-medium text-gray-700">Move-in Date</label>
+                                <input type="date" id="move-in-date" name="move-in-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                            </div>
+                            <div>
+                                <label for="move-out-date" class="block text-sm font-medium text-gray-700">Move-out Date</label>
+                                <input type="date" id="move-out-date" name="move-out-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                            </div>
+                             <div class="sm:col-span-2">
+                                <p class="text-sm text-gray-600">Calculated stay duration: <strong id="stay-duration">-- days</strong></p>
+                            </div>
+                             <div class="sm:col-span-2">
+                                <label for="stay" class="block text-sm font-medium text-gray-700">Notes on Length of Stay</label>
+                                <p class="text-xs text-gray-500 -mt-1 mb-2">Minimum stay of 30 days required.</p>
+                                <input type="text" id="stay" name="stay" placeholder="e.g., 3 months, flexible dates" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                            <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold"></textarea>
+                        </div>
+                        <div class="mt-6 text-right">
+                            <button type="submit" class="btn btn-primary">
+                                Send Inquiry
+                            </button>
+                        </div>
+                    </form>
+                    <p id="contact-success" class="text-center mt-4 text-green-600 font-semibold hidden">Thank you for your message! We'll be in touch soon.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-navy text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+                <div>
+                    <h3 class="font-semibold text-lg">Luxe Life Properties</h3>
+                    <p class="mt-2 text-gray-400">Hospitality-focused stays in Sacramento, CA.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg">Contact & Social</h4>
+                    <ul class="mt-2 space-y-2 text-gray-400">
+                        <li><a href="mailto:info@luxelp.com" class="hover:text-white">info@luxelp.com</a></li>
+                        <li><a href="tel:9167610211" class="hover:text-white">916.761.0211</a></li>
+                        <li><a href="#" class="hover:text-white">View on Furnished Finder</a></li>
+                    </ul>
+                     <div class="mt-4 flex items-center justify-center md:justify-start space-x-4">
+                        <a href="https://www.instagram.com/luxe_life.properties?igsh=MXIxNm92dXlqeDh1aw%3D%3D&utm_source=qr" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Instagram">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802c-3.239 0-3.593.011-4.834.069-2.734.124-3.958 1.348-4.082 4.082-.058 1.241-.069 1.595-.069 4.834s.011 3.593.069 4.834c.124 2.734 1.348 3.958 4.082 4.082 1.241.058 1.595.069 4.834.069s3.593-.011 4.834-.069c2.734-.124 3.958-1.348 4.082-4.082.058-1.241-.069-1.595-.069-4.834s-.011-3.593-.069-4.834c-.124-2.734-1.348-3.958-4.082-4.082-1.241-.058-1.595-.069-4.834-.069zm0 4.805c-1.954 0-3.519 1.565-3.519 3.519s1.565 3.519 3.519 3.519 3.519-1.565 3.519-3.519-1.565-3.519-3.519-3.519zm0 5.234c-.949 0-1.715-.766-1.715-1.715s.766-1.715 1.715-1.715 1.715.766 1.715 1.715-.766 1.715-1.715 1.715zm4.352-6.85c-.598 0-1.082.484-1.082 1.082s.484 1.082 1.082 1.082 1.082-.484 1.082-1.082-.484-1.082-1.082-1.082z"></path></svg>
+                        </a>
+                        <a href="https://www.facebook.com/profile.php?id=61577969854119" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Facebook">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v7.046C18.343 21.128 22 16.991 22 12z"></path></svg>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg">Legal & Compliance</h4>
+                    <ul class="mt-2 space-y-2 text-gray-400">
+                        <li><a href="#privacy" id="privacy-policy-link" class="hover:text-white cursor-pointer">Privacy Policy</a></li>
+                        <li><a href="#accessibility" id="accessibility-statement-link" class="hover:text-white cursor-pointer">Accessibility Statement</a></li>
+                        <li><a href="#donotsell" id="donotsell-link" class="hover:text-white cursor-pointer">Do Not Sell My Information</a></li>
+                    </ul>
+                </div>
+                <div class="flex flex-col items-center md:items-start">
+                    <h4 class="font-semibold text-lg">Fair Housing</h4>
+                     <a href="https://www.hud.gov/fairhousing" target="_blank" class="flex items-center text-white hover:text-gold transition-colors">
+                        <p class="text-2xl mt-2" title="Equal Housing Opportunity">🏠</p>
+                        <p class="text-sm text-gray-400 mt-2 ml-2">Equal Housing<br>Opportunity</p>
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-700 pt-6 text-center text-gray-500 text-sm">
+                <p>© 2025 Luxe Life Properties. All Rights Reserved.</p>
+                <p class="mt-4 text-xs text-gray-500 max-w-3xl mx-auto">
+                    Luxe Life Properties features select local businesses as a courtesy to our guests. These listings are not formal endorsements, and each provider operates independently. Guests are encouraged to engage providers at their discretion, as Luxe Life Properties is not involved in third-party agreements and assumes no responsibility for services rendered or outcomes that may result.
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyD9z9rp07fK2nQt5bT32GWLhyqf2pjXxGg",
+              authDomain: "luxe-life-properties.firebaseapp.com",
+              projectId: "luxe-life-properties",
+              storageBucket: "luxe-life-properties.appspot.com",
+              messagingSenderId: "891605931606",
+              appId: "1:891605931606:web:9913ddba4e447f16f20df7"
+            };
+
+            // --- ACTION REQUIRED: Paste your Google AI API Key here ---
+            const GEMINI_API_KEY = "YOUR_GOOGLE_AI_API_KEY";
+
+            // (The rest of the script is here, with the new Testimonial Carousel logic)
+
+            function initializeAppScripts(auth, db) {
+                // ... (previous setup code like mobile menu, nav observers, etc.)
+
+                // ... (gallery logic, modal logic, auth logic)
+                
+                // --- MODIFIED: Testimonial Carousel ---
+                const carousel = document.getElementById('testimonial-carousel');
+                if (carousel) {
+                    const prevTestimonialBtn = document.getElementById('prev-testimonial');
+                    const nextTestimonialBtn = document.getElementById('next-testimonial');
+                    let autoScrollInterval;
+
+                    const getScrollAmount = () => {
+                        const firstCard = carousel.querySelector('.testimonial-card');
+                        return firstCard ? firstCard.offsetWidth + 24 : carousel.clientWidth / 3; // 24px is for gap-x-6
+                    };
+
+                    const startAutoScroll = () => {
+                        stopAutoScroll(); // Ensure no multiple intervals are running
+                        autoScrollInterval = setInterval(() => {
+                            const scrollAmount = getScrollAmount();
+                            // If scrolling would go past the end, snap to the beginning
+                            if (carousel.scrollLeft + carousel.clientWidth + scrollAmount > carousel.scrollWidth) {
+                                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                            } else {
+                                carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                            }
+                        }, 7000);
+                    };
+
+                    const stopAutoScroll = () => {
+                        clearInterval(autoScrollInterval);
+                    };
+
+                    const scrollAction = (direction) => {
+                        stopAutoScroll();
+                        const amount = getScrollAmount() * direction;
+                        carousel.scrollBy({ left: amount, behavior: 'smooth' });
+                        startAutoScroll();
+                    };
+                    
+                    prevTestimonialBtn.addEventListener('click', () => scrollAction(-1));
+                    nextTestimonialBtn.addEventListener('click', () => scrollAction(1));
+
+                    carousel.addEventListener('mouseenter', stopAutoScroll);
+                    carousel.addEventListener('mouseleave', startAutoScroll);
+
+                    // Start on page load
+                    startAutoScroll();
+                }
+
+                // ... (contact form logic with date calculation, AI concierge logic)
+            }
+        });
+    </script>
+</body>
+</html>
