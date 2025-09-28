@@ -1,617 +1,464 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Home Away From Home, Redefined</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <title>Staging & Design</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --background-color: #ecf0f1;
-            --text-color: #34495e;
-            --white-color: #ffffff;
-            --light-gray: #bdc3c7;
+            --primary-color: #333;
+            --secondary-color: #f4f4f4;
+            --accent-color: #007bff;
+            --text-color: #555;
+            --heading-font: 'Georgia', serif;
+            --body-font: 'Arial', sans-serif;
         }
 
-        /* --- Global Styles --- */
-        html {
-            scroll-behavior: smooth;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
+            font-family: var(--body-font);
             color: var(--text-color);
             line-height: 1.6;
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-family: 'Playfair Display', serif;
+            background-color: var(--secondary-color);
         }
 
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+            max-width: 1100px;
+            margin: auto;
+            overflow: hidden;
+            padding: 0 20px;
         }
 
-        section {
-            padding: 4rem 0;
-        }
-
-        /* --- Header --- */
         header {
-            background-color: var(--white-color);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            position: sticky;
+            background: #fff;
+            color: var(--primary-color);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
             top: 0;
             z-index: 100;
-            width: 100%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .navbar {
+        header .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
         }
 
-        .nav-logo {
-            font-family: 'Playfair Display', serif;
+        header .logo {
             font-size: 1.5rem;
             font-weight: bold;
-            color: var(--primary-color);
-            text-decoration: none;
+            font-family: var(--heading-font);
         }
 
-        .nav-links {
-            list-style: none;
-            margin: 0;
-            padding: 0;
+        header nav ul {
             display: flex;
-            gap: 2rem;
+            list-style: none;
         }
 
-        .nav-links a {
-            text-decoration: none;
+        header nav ul li {
+            margin-left: 20px;
+        }
+
+        header nav a {
             color: var(--primary-color);
+            text-decoration: none;
             font-weight: bold;
             transition: color 0.3s ease;
         }
 
-        .nav-links a:hover {
-            color: var(--secondary-color);
+        header nav a:hover {
+            color: var(--accent-color);
         }
 
-        /* --- Hero Section --- */
-        .hero {
+        #home {
             position: relative;
             height: 100vh;
             display: flex;
-            align-items: center;
             justify-content: center;
-            text-align: center;
-            overflow: hidden;
-        }
-        
-        #hero-video {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            z-index: -1;
-            transform: translateX(-50%) translateY(-50%);
-            object-fit: cover;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            padding: 2rem;
-            background-color: rgba(0, 0, 0, 0.4); /* Overlay for text readability */
-            border-radius: 10px;
-        }
-        
-        /* Updated styles for hero text */
-        #home .hero-content h1,
-        #home .hero-content p {
-            color: var(--white-color);
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            font-weight: 400;
-        }
-        
-        /* --- Gallery Section --- */
-        #gallery {
-            background-color: var(--white-color);
-        }
-        
-        #gallery h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            color: var(--primary-color);
-        }
-
-        .gallery-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .image-display-container {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-
-        #image-display {
-            width: 100%;
-            height: 600px;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: block;
-        }
-        
-        .nav-button {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            padding: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        .nav-button:hover {
-            background-color: rgba(0, 0, 0, 0.8);
-        }
-
-        .prev { left: 1rem; }
-        .next { right: 1rem; }
-
-        .thumbnails {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 0.5rem;
-        }
-
-        .thumbnails img {
-            width: 100%;
-            height: 75px;
-            object-fit: cover;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .thumbnails img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .thumbnails img.active {
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 10px var(--secondary-color);
-        }
-        
-        /* --- Footer --- */
-        footer {
-            background-color: var(--primary-color);
-            color: var(--light-gray);
-            padding: 3rem 0 1rem;
-        }
-        
-        .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        .footer-column {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .footer-column h3 {
-            color: var(--white-color);
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .footer-column ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .footer-column ul li {
-            margin-bottom: 0.5rem;
-        }
-
-        .footer-column ul a {
-            color: var(--light-gray);
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-column ul a:hover {
-            color: var(--white-color);
-            cursor: pointer;
-        }
-        
-        .footer-bottom {
             text-align: center;
-            margin-top: 3rem;
-            padding-top: 1rem;
-            border-top: 1px solid #34495e;
+            color: #fff;
         }
-        
-        /* --- Modal Styles --- */
-        .modal-overlay {
-            position: fixed;
+
+        #video-background {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            padding: 1rem;
+            object-fit: cover;
+            z-index: -1;
         }
 
-        .modal-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .modal-content {
-            background-color: var(--white-color);
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 750px;
-            max-height: 85vh;
-            overflow-y: auto;
-            position: relative;
-            transform: scale(1);
-            transition: transform 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-
-        .modal-overlay.hidden .modal-content {
-            transform: scale(0.95);
-        }
-
-        .modal-close {
+        #home .overlay {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            background: none;
-            border: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        #home .content {
+            z-index: 1;
+        }
+
+        #home h1 {
+            font-size: 4rem;
+            font-family: var(--heading-font);
+            margin-bottom: 1rem;
+        }
+
+        #home .tagline {
+            font-size: 1.5rem;
+        }
+
+        section {
+            padding: 60px 0;
+        }
+
+        h2.section-title {
+            text-align: center;
+            margin-bottom: 40px;
             font-size: 2.5rem;
-            font-weight: 300;
-            line-height: 1;
-            cursor: pointer;
-            color: #888;
-            transition: color 0.2s ease;
+            font-family: var(--heading-font);
+            color: var(--primary-color);
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .service-item {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .service-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .service-item i {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 40px 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .footer-column h3 {
+            margin-bottom: 15px;
+            font-family: var(--heading-font);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .footer-column p,
+        .footer-column a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-column a:hover {
+            color: #fff;
+        }
+
+        .social-links a {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        /* --------------------------------- */
+        /* --- NEW STYLES FOR COMPLIANCE --- */
+        /* --------------------------------- */
+
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
         }
         
-        .modal-close:hover {
-            color: #333;
+        .modal.active {
+            display: flex; /* Use flexbox for centering when active */
         }
-
-        #modal-title {
-            margin-top: 0;
-            font-family: 'Playfair Display', serif;
-            color: var(--primary-color);
-            padding-right: 40px; /* Space for close button */
-        }
-
-        #modal-body {
-            margin-top: 20px;
+        
+        .modal-content {
+            background-color: #fefefe;
             color: var(--text-color);
-            line-height: 1.7;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 85vh; /* Max height to prevent overflow on small screens */
+            overflow-y: auto; /* Allow scrolling within the modal */
         }
-
-        #modal-body h4 {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 10px;
+        
+        .modal-content h2 {
+            font-family: var(--heading-font);
+            margin-top: 0;
             color: var(--primary-color);
         }
-        #modal-body p, #modal-body ul {
-            margin-bottom: 15px;
-        }
-        #modal-body li {
-            margin-left: 20px;
-            margin-bottom: 5px;
+
+        .modal-content p, .modal-content ul {
+            margin-bottom: 1rem;
         }
 
+        .modal-content ul {
+            padding-left: 20px;
+        }
+        
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
-
 <body>
 
     <header>
-        <nav class="navbar">
-            <a href="#home" class="nav-logo">Serene Escapes</a>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#gallery">Gallery</a></li>
-            </ul>
-        </nav>
+        <div class="container">
+            <div class="logo">S&D</div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <main>
-        <section id="home" class="hero">
-            <video autoplay loop muted playsinline id="hero-video">
-                <source src="https://files.streamable.com/amxcaq.mp4" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="hero-content">
-                <h1>Your Home Away From Home, Redefined.</h1>
-                <p>In the meantime, you matter.</p>
-            </div>
-        </section>
+    <section id="home">
+        <video autoplay muted loop id="video-background">
+            <source src="https://storage.googleapis.com/coverr-main/mp4/Mt_Baker.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="overlay"></div>
+        <div class="content">
+            <h1 style="color: white;">Your Next Furnished Home Awaits</h1>
+            <p class="tagline" style="color: white;">In the meantime, you matter</p>
+        </div>
+    </section>
 
-        <section id="gallery">
-            <div class="container">
-                <h2>Photo Gallery</h2>
-                <div class="gallery-container">
-                    <div class="image-display-container">
-                        <img id="image-display" src="https://i.imgur.com/VgWemC1.jpeg" alt="Main gallery view">
-                        <button class="nav-button prev">&lt;</button>
-                        <button class="nav-button next">&gt;</button>
-                    </div>
-                    <div class="thumbnails">
-                        </div>
+    <main>
+        <section id="services" class="container">
+            <h2 class="section-title">Our Services</h2>
+            <div class="service-grid">
+                <div class="service-item">
+                    <i class="fas fa-couch"></i>
+                    <h3>Home Staging</h3>
+                    <p>We transform your property to captivate buyers and sell faster.</p>
+                </div>
+                <div class="service-item">
+                    <i class="fas fa-palette"></i>
+                    <h3>Interior Design</h3>
+                    <p>Personalized design services to create the home of your dreams.</p>
+                </div>
+                <div class="service-item">
+                    <i class="fas fa-box-open"></i>
+                    <h3>Furniture Rental</h3>
+                    <p>Stylish and high-quality furniture packages for any space.</p>
                 </div>
             </div>
         </section>
 
-    </main>
+        </main>
 
     <footer>
-        <div class="footer-content">
+        <div class="container footer-content">
             <div class="footer-column">
-                <h3>Navigation</h3>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#gallery">Gallery</a></li>
-                </ul>
+                <h3>About Us</h3>
+                <p>We are a premier staging and design company dedicated to creating beautiful and functional spaces. Our passion is to help you realize the full potential of your property.</p>
             </div>
             <div class="footer-column">
-                <h3>Contact</h3>
-                <ul>
-                    <li><a href="mailto:contact@serene-escapes.com">Email Us</a></li>
-                    <li><span>(555) 123-4567</span></li>
-                </ul>
+                <h3>Contact & Social</h3>
+                <p>Email: <a href="mailto:contact@stagingdesign.com">contact@stagingdesign.com</a></p>
+                <p>Phone: <a href="tel:+1234567890">(123) 456-7890</a></p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-pinterest-p"></i></a>
+                </div>
             </div>
             <div class="footer-column">
                 <h3>Compliance</h3>
-                <ul id="compliance-links">
-                    <li><a href="#" data-modal-target="tos">Terms of Service</a></li>
-                    <li><a href="#" data-modal-target="privacy">Privacy Policy</a></li>
-                    <li><a href="#" data-modal-target="accessibility">Accessibility Statement</a></li>
-                </ul>
+                <a href="#" data-modal-target="#termsModal">Terms of Service</a>
+                <a href="#" data-modal-target="#privacyModal">Privacy Policy</a>
+                <a href="#" data-modal-target="#accessibilityModal">Accessibility Statement</a>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Serene Escapes. All rights reserved.</p>
-        </div>
     </footer>
-    
-    <div id="compliance-modal" class="modal-overlay hidden">
+
+    <div id="termsModal" class="modal">
         <div class="modal-content">
-            <button class="modal-close" aria-label="Close modal">&times;</button>
-            <h2 id="modal-title"></h2>
-            <div id="modal-body"></div>
+            <span class="close-button" data-close-button>&times;</span>
+            <h2>Terms of Service</h2>
+            <p>Welcome to our website. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern our relationship with you in relation to this website. If you disagree with any part of these terms and conditions, please do not use our website.</p>
+            <p>The term 'us' or 'we' refers to the owner of the website. The term 'you' refers to the user or viewer of our website.</p>
+            <p>The use of this website is subject to the following terms of use:</p>
+            <ul>
+                <li>The content of the pages of this website is for your general information and use only. It is subject to change without notice.</li>
+                <li>This website uses cookies to monitor Browse preferences. If you do allow cookies to be used, personal information may be stored by us for use by third parties.</li>
+                <li>Neither we nor any third parties provide any warranty or guarantee as to the accuracy, timeliness, performance, completeness or suitability of the information and materials found or offered on this website for any particular purpose. You acknowledge that such information and materials may contain inaccuracies or errors and we expressly exclude liability for any such inaccuracies or errors to the fullest extent permitted by law.</li>
+                <li>Your use of any information or materials on this website is entirely at your own risk, for which we shall not be liable. It shall be your own responsibility to ensure that any products, services or information available through this website meet your specific requirements.</li>
+                <li>This website contains material which is owned by or licensed to us. This material includes, but is not limited to, the design, layout, look, appearance and graphics. Reproduction is prohibited other than in accordance with the copyright notice, which forms part of these terms and conditions.</li>
+                <li>All trademarks reproduced in this website, which are not the property of, or licensed to the operator, are acknowledged on the website.</li>
+                <li>Unauthorized use of this website may give rise to a claim for damages and/or be a criminal offense.</li>
+                <li>From time to time, this website may also include links to other websites. These links are provided for your convenience to provide further information. They do not signify that we endorse the website(s). We have no responsibility for the content of the linked website(s).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="privacyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-close-button>&times;</span>
+            <h2>Privacy Policy</h2>
+            <p>This privacy policy sets out how we use and protect any information that you give us when you use this website. We are committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement.</p>
+            <h3>What we collect</h3>
+            <p>We may collect the following information:</p>
+            <ul>
+                <li>Name and job title</li>
+                <li>Contact information including email address</li>
+                <li>Demographic information such as postcode, preferences and interests</li>
+                <li>Other information relevant to customer surveys and/or offers</li>
+            </ul>
+            <h3>What we do with the information we gather</h3>
+            <p>We require this information to understand your needs and provide you with a better service, and in particular for the following reasons:</p>
+            <ul>
+                <li>Internal record keeping.</li>
+                <li>We may use the information to improve our products and services.</li>
+                <li>We may periodically send promotional emails about new products, special offers or other information which we think you may find interesting using the email address which you have provided.</li>
+                <li>From time to time, we may also use your information to contact you for market research purposes.</li>
+            </ul>
+            <h3>Security</h3>
+            <p>We are committed to ensuring that your information is secure. In order to prevent unauthorized access or disclosure, we have put in place suitable physical, electronic and managerial procedures to safeguard and secure the information we collect online.</p>
+        </div>
+    </div>
+
+    <div id="accessibilityModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-close-button>&times;</span>
+            <h2>Accessibility Statement</h2>
+            <p>We are committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone, and applying the relevant accessibility standards.</p>
+            <h3>Conformance status</h3>
+            <p>The Web Content Accessibility Guidelines (WCAG) defines requirements for designers and developers to improve accessibility for people with disabilities. It defines three levels of conformance: Level A, Level AA, and Level AAA. Our website is partially conformant with WCAG 2.1 level AA. Partially conformant means that some parts of the content do not fully conform to the accessibility standard.</p>
+            <h3>Feedback</h3>
+            <p>We welcome your feedback on the accessibility of our website. Please let us know if you encounter accessibility barriers:</p>
+            <ul>
+                <li>Phone: (123) 456-7890</li>
+                <li>E-mail: contact@stagingdesign.com</li>
+                <li>Visitor Address: 123 Design Lane, Creative City, 12345</li>
+            </ul>
+            <p>We try to respond to feedback within 5 business days.</p>
+            <h3>Technical specifications</h3>
+            <p>Accessibility of our website relies on the following technologies to work with the particular combination of web browser and any assistive technologies or plugins installed on your computer: HTML, WAI-ARIA, CSS, and JavaScript. These technologies are relied upon for conformance with the accessibility standards used.</p>
         </div>
     </div>
 
 
     <script type="module">
-        // ======== GALLERY SCRIPT (UPDATED) ========
-        const images = [
-            'https://i.imgur.com/VgWemC1.jpeg', // Drone Shot 1
-            'https://i.imgur.com/CMGlCLk.jpeg', // Drone Shot 2
-            'https://i.imgur.com/bqlXyeM.jpeg', // Front Door
-            'https://i.imgur.com/ISZOzuh.jpeg', // Living Room 1
-            'https://i.imgur.com/ul4yWx6.jpeg', // Living Room 2
-            'https://i.imgur.com/4bvmDFb.jpeg', // Living Room 3
-            'https://i.imgur.com/2Zl8a1T.jpeg', // Dining Area
-            'https://i.imgur.com/j02Yxho.jpeg', // Kitchen 1
-            'https://i.imgur.com/zjYLxoA.jpeg', // Kitchen 2
-            'https://i.imgur.com/ogzjYEe.jpeg', // Hallway
-            'https://i.imgur.com/q8I17L3.jpeg', // Master Bedroom 1
-            'https://i.imgur.com/OG7TLIV.jpeg', // Master Bedroom 2
-            'https://i.imgur.com/1GdYe99.jpeg', // Master Bath 1
-            'https://i.imgur.com/KZKJNNT.jpeg', // Master Bath 2
-            'https://i.imgur.com/kfeVMFQ.jpeg', // Guest Bedroom 1
-            'https://i.imgur.com/y0A0Mfx.jpeg', // Guest Bedroom 2
-            'https://i.imgur.com/Haj6bEs.jpeg', // Guest Bath
-            'https://i.imgur.com/xqDv0DG.jpeg', // Office Nook
-            'https://i.imgur.com/KbVzUdE.jpeg', // Laundry
-            'https://i.imgur.com/ZDDtHte.jpeg', // Balcony
-            'https://i.imgur.com/ST6rQXA.jpeg', // Garage Marble Floor
-            'https://i.imgur.com/uhTqLyj.jpeg', // Drone Shot 3
-            'https://i.imgur.com/Sks7zul.jpeg'  // Drone Shot 4
-        ];
+        // Your existing JS can go here if you have any.
+        
+        // CHANGE 4: JAVASCRIPT FOR MODAL FUNCTIONALITY
+        
+        // Select all elements that trigger a modal
+        const openModalButtons = document.querySelectorAll('[data-modal-target]');
+        // Select all close buttons inside modals
+        const closeModalButtons = document.querySelectorAll('[data-close-button]');
 
-        const imageDisplay = document.getElementById('image-display');
-        const thumbnailsContainer = document.querySelector('.thumbnails');
-        const prevButton = document.querySelector('.prev');
-        const nextButton = document.querySelector('.next');
-        let currentIndex = 0;
-
-        function updateMainImage(index) {
-            imageDisplay.src = images[index];
-            currentIndex = index;
-            updateActiveThumbnail();
-        }
-
-        function updateActiveThumbnail() {
-            document.querySelectorAll('.thumbnails img').forEach((img, i) => {
-                img.classList.toggle('active', i === currentIndex);
-                if (i === currentIndex) {
-                    img.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        // Add a click event listener to each modal trigger button
+        openModalButtons.forEach(button => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevent the link from navigating
+                const modal = document.querySelector(button.dataset.modalTarget);
+                openModal(modal);
+            });
+        });
+        
+        // Add a click event listener to each close button
+        closeModalButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const modal = button.closest('.modal'); // Find the parent modal
+                closeModal(modal);
+            });
+        });
+        
+        // Add a click listener to all modals to close when the overlay (background) is clicked
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (event) => {
+                // If the click target is the modal container itself (the overlay), close it.
+                if (event.target === modal) {
+                    closeModal(modal);
                 }
             });
+        });
+
+        // Function to open a modal
+        function openModal(modal) {
+            if (modal == null) return;
+            modal.classList.add('active');
         }
 
-        images.forEach((src, index) => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = `View ${index + 1}`;
-            img.addEventListener('click', () => updateMainImage(index));
-            thumbnailsContainer.appendChild(img);
-        });
-
-        prevButton.addEventListener('click', () => {
-            const newIndex = (currentIndex - 1 + images.length) % images.length;
-            updateMainImage(newIndex);
-        });
-
-        nextButton.addEventListener('click', () => {
-            const newIndex = (currentIndex + 1) % images.length;
-            updateMainImage(newIndex);
-        });
-        
-        // Initialize first image and thumbnail
-        updateMainImage(0);
-
-
-        // ======== MODAL SCRIPT (ADDED) ========
-        const modalContentData = {
-            tos: {
-                title: "Terms of Service",
-                content: `
-                    <h4>1. Acceptance of Terms</h4>
-                    <p>By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this website's particular services, you shall be subject to any posted guidelines or rules applicable to such services.</p>
-                    <h4>2. Use of the Site</h4>
-                    <p>This site and its components are offered for informational purposes only; this site shall not be responsible or liable for the accuracy, usefulness or availability of any information transmitted or made available via the site, and shall not be responsible or liable for any error or omissions in that information.</p>
-                    <h4>3. Intellectual Property</h4>
-                    <p>The Site and its original content, features, and functionality are owned by the site owner and are protected by international copyright, trademark, and other intellectual property or proprietary rights laws.</p>
-                    <h4>4. Termination</h4>
-                    <p>We may terminate your access to the site, without cause or notice, which may result in the forfeiture and destruction of all information associated with your account. All provisions of this Agreement that, by their nature, should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.</p>
-                    <h4>5. Governing Law</h4>
-                    <p>This Agreement is governed in accordance with the laws of California, United States.</p>
-                `
-            },
-            privacy: {
-                title: "Privacy Policy",
-                content: `
-                    <h4>1. Information Collection</h4>
-                    <p>We are the sole owners of the information collected on this site. We only have access to/collect information that you voluntarily give us via email or other direct contact from you. We will not sell or rent this information to anyone.</p>
-                    <h4>2. Information Use</h4>
-                    <p>We will use your information to respond to you, regarding the reason you contacted us. We will not share your information with any third party outside of our organization, other than as necessary to fulfill your request.</p>
-                    <h4>3. Your Access to and Control Over Information</h4>
-                    <p>You may opt out of any future contacts from us at any time. You can do the following at any time by contacting us via the email address or phone number provided on our website: see what data we have about you, if any; change/correct any data we have about you; have us delete any data we have about you; express any concern you have about our use of your data.</p>
-                    <h4>4. Security</h4>
-                    <p>We take precautions to protect your information. When you submit sensitive information via the website, your information is protected both online and offline.</p>
-                `
-            },
-            accessibility: {
-                title: "Accessibility Statement",
-                content: `
-                    <p>We are committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards.</p>
-                    <h4>Conformance Status</h4>
-                    <p>The Web Content Accessibility Guidelines (WCAG) defines requirements for designers and developers to improve accessibility for people with disabilities. We aim for conformance with WCAG 2.1 level AA. </p>
-                    <h4>Feedback</h4>
-                    <p>We welcome your feedback on the accessibility of this website. Please let us know if you encounter accessibility barriers:</p>
-                    <ul>
-                        <li>E-mail: contact@serene-escapes.com</li>
-                        <li>Phone: (555) 123-4567</li>
-                    </ul>
-                    <p>We try to respond to feedback within 5 business days.</p>
-                    <h4>Technical Specifications</h4>
-                    <p>Accessibility of this website relies on the following technologies to work with the particular combination of web browser and any assistive technologies or plugins installed on your computer: HTML, CSS, JavaScript. These technologies are relied upon for conformance with the accessibility standards used.</p>
-                `
-            }
-        };
-
-        const modal = document.getElementById('compliance-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        const closeModalBtn = document.querySelector('.modal-close');
-        const complianceLinks = document.getElementById('compliance-links');
-
-        const openModal = (type) => {
-            const content = modalContentData[type];
-            if (content) {
-                modalTitle.textContent = content.title;
-                modalBody.innerHTML = content.content;
-                modal.classList.remove('hidden');
-            }
-        };
-
-        const closeModal = () => {
-            modal.classList.add('hidden');
-        };
-
-        complianceLinks.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetLink = e.target.closest('a');
-            if (targetLink && targetLink.dataset.modalTarget) {
-                openModal(targetLink.dataset.modalTarget);
-            }
-        });
-
-        closeModalBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            // Closes modal if user clicks on the dark overlay background
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
+        // Function to close a modal
+        function closeModal(modal) {
+            if (modal == null) return;
+            modal.classList.remove('active');
+        }
     </script>
 </body>
-
 </html>
