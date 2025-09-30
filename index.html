@@ -1,3 +1,21 @@
+Of course. Here is the complete and final code for the Luxe Life Properties website.
+
+This file contains all the features we have built and refined together, including:
+
+  * The full-screen video hero section.
+  * The interactive property gallery and details section.
+  * The AI Concierge (ready for your API key).
+  * The redesigned, compact testimonials carousel that scrolls one card at a time.
+  * The Firebase-powered Resident Portal with a real-time password strength indicator.
+  * The advanced contact form with automatic stay duration calculation.
+  * The compliance modals (Privacy Policy, etc.) and updated footer.
+  * The styled mobile navigation buttons.
+
+To make the site fully functional after you deploy it, you will still need to add your **Google AI API Key** in the script section at the bottom.
+
+Here is the complete code:
+
+```html
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -6,6 +24,8 @@
     <title>Luxe Life Properties - Premium Furnished Rentals</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,6 +44,9 @@
         .font-playfair {
             font-family: 'Playfair Display', serif;
         }
+        .font-lora {
+            font-family: 'Playfair Display', serif; /* Using Playfair as a substitute for Lora for consistency */
+        }
         .bg-navy { background-color: #0A2342; }
         .text-navy { color: #0A2342; }
         .bg-sage { background-color: #A2A182; }
@@ -41,6 +64,12 @@
         }
         .nav-link-active {
             @apply bg-gold/20 text-gold border-gold/30;
+        }
+        .mobile-nav-btn {
+            @apply block w-full text-center py-4 px-6 text-gray-700 font-semibold bg-gray-50/50 border-b border-gray-200 transition-colors duration-300;
+        }
+        .mobile-nav-btn:hover {
+            @apply bg-gold/20 text-gold;
         }
         .gallery-image {
             transition: opacity 0.5s ease-in-out;
@@ -68,7 +97,7 @@
             @apply bg-gold text-white hover:bg-bronze-dark;
         }
         .btn-secondary {
-            @apply bg-navy text-white;
+            @apply bg-white text-navy hover:bg-gray-200 border border-transparent;
         }
         .fade-in-up {
             opacity: 0;
@@ -86,6 +115,9 @@
         .modal-content {
             transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
         }
+        .modal-body {
+            @apply max-h-[70vh] overflow-y-auto pr-4 -mr-4 text-gray-600;
+        }
         .testimonial-carousel {
             scroll-snap-type: x mandatory;
             overflow-x: auto;
@@ -101,11 +133,19 @@
         }
         @media (min-width: 768px) {
             .testimonial-card {
-                flex: 0 0 50%;
+                flex: 0 0 calc(50% - 1rem); /* Two cards with a gap */
+            }
+        }
+        @media (min-width: 1024px) {
+            .testimonial-card {
+                flex: 0 0 calc(33.333% - 1rem); /* Three cards with a gap */
             }
         }
         .header-text-shadow {
             text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .hero-text-shadow {
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -132,27 +172,26 @@
                 </button>
             </div>
         </div>
-        <div id="mobile-menu" class="hidden lg:hidden bg-warm-white/95 backdrop-blur-md border-t border-gray-200">
-            <a href="#property" class="mobile-nav-link block text-center py-4 px-6 text-gray-700 hover:bg-gray-100 hover:text-gold transition-colors">Available Properties</a>
-            <a href="#about" class="mobile-nav-link block text-center py-4 px-6 text-gray-700 hover:bg-gray-100 hover:text-gold transition-colors">About</a>
-            <a href="#residents" class="mobile-nav-link block text-center py-4 px-6 text-gray-700 hover:bg-gray-100 hover:text-gold transition-colors">For Residents</a>
-            <a href="#partners" class="mobile-nav-link block text-center py-4 px-6 text-gray-700 hover:bg-gray-100 hover:text-gold transition-colors">Partners</a>
-            <a href="#contact" class="mobile-nav-link block text-center py-4 px-6 text-gray-700 hover:bg-gray-100 hover:text-gold transition-colors">Contact</a>
+        <div id="mobile-menu" class="hidden lg:hidden bg-warm-white/95 backdrop-blur-md">
+            <a href="#property" class="mobile-nav-link mobile-nav-btn">Available Properties</a>
+            <a href="#about" class="mobile-nav-link mobile-nav-btn">About</a>
+            <a href="#residents" class="mobile-nav-link mobile-nav-btn">For Residents</a>
+            <a href="#partners" class="mobile-nav-link mobile-nav-btn">Partners</a>
+            <a href="#contact" class="mobile-nav-link mobile-nav-btn">Contact</a>
         </div>
     </header>
 
     <main>
-        <!-- Section 1: Hero -->
-        <section id="home" class="h-screen flex items-center relative overflow-hidden text-white">
-            <video autoplay loop muted playsinline poster="https://i.imgur.com/mu2FeIW.jpeg" class="absolute z-0 w-full h-full object-cover">
-                <source src="https://files.streamable.com/vvvd1k.mp4" type="video/mp4">
+        <section id="home" class="h-screen relative overflow-hidden text-white">
+            <video autoplay loop muted playsinline class="absolute z-0 w-full h-full object-cover">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-furnished-apartment-with-a-modern-style-47401-large.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="absolute inset-0 bg-navy/70 z-10"></div>
-            <div class="container mx-auto px-6 relative z-20">
+            <div class="container mx-auto px-6 relative z-20 h-full flex items-center justify-center">
                 <div class="max-w-2xl text-center mx-auto fade-in-up">
-                    <h1 class="font-lora text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-white">Your Next Furnished Home Awaits.</h1>
-                    <p class="text-xl md:text-2xl mt-4 font-lora italic text-white/90">In the meantime, you matter.</p>
+                    <h1 class="font-lora text-4xl sm:text-5xl md:text-6xl font-bold leading-tight text-white hero-text-shadow">Your Home Away From Home, Redefined.</h1>
+                    <p class="text-xl md:text-2xl mt-4 font-lora italic text-white/90 hero-text-shadow">In the meantime, you matter.</p>
                     <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
                          <a href="#property" class="btn btn-primary text-center">View Properties</a>
                          <a href="#contact" class="btn bg-white/90 text-navy hover:bg-white text-center">Contact Us</a>
@@ -161,7 +200,6 @@
             </div>
         </section>
 
-        <!-- Section 2: Why Choose Us? -->
         <section id="why-us" class="py-20 md:py-28 bg-white">
             <div class="container mx-auto px-6 text-center">
                  <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy fade-in-up">The Luxe Life Difference</h2>
@@ -178,7 +216,7 @@
                         <p class="mt-2 text-gray-600">Our team is dedicated to providing exceptional service and ensuring your comfort throughout your stay.</p>
                      </div>
                      <div class="flex flex-col items-center fade-in-up" style="transition-delay: 400ms;">
-                         <div class="flex items-centered justify-center w-20 h-20 rounded-full bg-gold/10 text-gold mb-4 text-4xl">📍</div>
+                         <div class="flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 text-gold mb-4 text-4xl">📍</div>
                         <h3 class="text-xl font-bold text-navy">Prime Locations</h3>
                         <p class="mt-2 text-gray-600">Our properties are strategically located in desirable Sacramento neighborhoods with easy access to key destinations.</p>
                      </div>
@@ -186,7 +224,6 @@
             </div>
         </section>
         
-        <!-- Section 3: Property Details -->
         <section id="property" class="py-20 md:py-28 bg-warm-white">
             <div class="container mx-auto px-6">
                 <div class="text-center max-w-3xl mx-auto fade-in-up">
@@ -196,43 +233,39 @@
                     </p>
                 </div>
 
-                <!-- Property Card -->
                 <div class="mt-16 max-w-5xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden fade-in-up">
                     <div class="grid md:grid-cols-2">
                         <div class="relative">
-                           <img id="gallery-main-image" src="https://i.imgur.com/uhTqLyj.jpeg" alt="Main gallery view of the property" class="gallery-image w-full h-full object-cover">
+                           <img id="gallery-main-image" src="https://i.imgur.com/VgWemC1.jpeg" alt="Main gallery view of the property" class="gallery-image w-full h-full object-cover">
                            <div class="absolute top-0 left-0 w-full h-full flex justify-between items-center p-4 bg-black/10">
-                                <button id="prev-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition">&lt;</button>
-                                <button id="next-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition">&gt;</button>
+                                <button id="prev-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition"><</button>
+                                <button id="next-btn" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition">></button>
                             </div>
                         </div>
                         <div class="p-8 flex flex-col">
                             <h3 class="font-lora text-2xl font-bold text-navy">The Amara Retreat</h3>
                             <p class="text-md text-gray-500 mt-1">North Natomas, Sacramento, CA 95835</p>
                             <p class="mt-4 text-gray-600 flex-grow">A serene 2-bedroom, 2-bathroom condominium unit designed for comfort and convenience. Perfect for unwinding after a long day, with all the comforts of home and then some.</p>
-                            <button id="details-toggle-btn" class="btn btn-primary mt-6 text-center">View Details &amp; Gallery</button>
+                            <button id="details-toggle-btn" class="btn btn-primary mt-6 text-center">View Details & Gallery</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Expanded Property Details -->
                 <div id="property-details" class="hidden mt-28">
-                    <div class="grid lg:grid-cols-5 gap-12">
-                        <div class="lg:col-span-3">
-                            <h3 class="font-lora text-3xl font-bold text-navy mb-4">Photo Gallery</h3>
-                            <div id="thumbnail-container" class="grid grid-cols-3 md:grid-cols-5 gap-2">
-                            </div>
+                    <div class="lg:col-span-3">
+                        <h3 class="font-lora text-3xl font-bold text-navy mb-4">Photo Gallery</h3>
+                        <div id="thumbnail-container" class="grid grid-cols-3 md:grid-cols-5 gap-2">
                         </div>
-                        <div class="lg:col-span-2">
-                            <h3 class="font-lora text-3xl font-bold text-navy mb-4">Key Amenities</h3>
-                            <ul class="space-y-3 text-gray-700">
-                                <li class="flex items-center"><span class="text-gold text-xl mr-3">✓</span> Fully Furnished</li>
-                                <li class="flex items-center"><span class="text-gold text-xl mr-3">✓</span> All Utilities Included</li>
-                                <li class="flex items-centered"><span class="text-gold text-xl mr-3">✓</span> In-Unit Washer &amp; Dryer</li>
-                                <li class="flex items-centered"><span class="text-gold text-xl mr-3">✓</span> High-Speed Wi-Fi</li>
-                                <li class="flex items-centered"><span class="text-gold text-xl mr-3">✓</span> Dedicated Workspace</li>
-                                <li class="flex items-centered"><span class="text-gold text-xl mr-3">✓</span> Pet-Friendly Options</li>
-                            </ul>
+                    </div>
+                    <div class="mt-12">
+                        <h3 class="font-lora text-3xl font-bold text-navy mb-4 text-center">Key Amenities</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Fully Furnished</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> All Utilities Included</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> In-Unit Washer & Dryer</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> High-Speed Wi-Fi</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Dedicated Workspace</div>
+                            <div class="bg-white p-4 rounded-lg shadow-md text-center"><span class="text-gold text-2xl mr-2">✓</span> Pet-Friendly Options</div>
                         </div>
                     </div>
                     <div class="mt-12 md:mt-16 grid md:grid-cols-2 gap-12 items-center">
@@ -245,23 +278,22 @@
                                         <option value="top-rated local coffee shops">Coffee Shops</option>
                                         <option value="great restaurants for a weeknight dinner">Restaurants</option>
                                         <option value="quiet places to work or read">Quiet Spots</option>
-                                        <option value="scenic parks or trails for a weekend walk">Parks &amp; Trails</option>
+                                        <option value="scenic parks or trails for a weekend walk">Parks & Trails</option>
                                     </select>
-                                    <button id="concierge-button" class="btn btn-primary bg-gold text-white font-semibold px-4 py-2 mt-1 rounded-md hover:bg-bronze-dark transition-colors">✨ Ask</button>
+                                    <button id="concierge-button" class="btn btn-sm btn-primary bg-gold text-white font-semibold px-4 py-2 mt-1 rounded-md hover:bg-bronze-dark transition-colors">✨ Ask</button>
                                 </div>
                             </div>
-                            <div id="concierge-loading" class="hidden mt-4 flex items-center gap-2 text-gray-500"><div class="spinner w-5 h-5 border-2 border-gray-300 rounded-full"></div>Generating...</div>
-                            <div id="concierge-output" class="hidden mt-4 p-4 bg-white rounded-lg border"></div>
+                            <div id="concierge-loading" class="hidden mt-4 flex items-center gap-2 text-gray-500"><div class="spinner w-5 h-5 border-2 border-gray-300 rounded-full"></div>Generating recommendations...</div>
+                            <div id="concierge-output" class="hidden mt-4 p-4 bg-white rounded-lg border text-gray-700"></div>
                         </div>
                          <div class="h-96 w-full rounded-lg overflow-hidden shadow-lg">
-                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50014.28827993427!2d-121.54332999467773!3d38.65373117180419!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x809cb852c1a40345%3A0x59385966d4807e33!2sNorth%20Natomas%2C%20Sacramento%2C%20CA%2095835!5e0!3m2!1sen!2sus!4v1719475960810!5m2!1sen!2sus" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            <iframe src="https://www.google.com/maps0" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 4: About Us -->
         <section id="about" class="py-20 md:py-28 bg-white">
              <div class="container mx-auto px-6">
                 <div class="grid md:grid-cols-2 gap-16 items-center">
@@ -279,55 +311,52 @@
             </div>
         </section>
         
-        <!-- Section 5: Testimonials -->
-        <section id="testimonials" class="py-20 md:py-28 bg-warm-white">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy fade-in-up">What Our Guests Are Saying</h2>
-                <div class="mt-16 max-w-4xl mx-auto relative fade-in-up" style="transition-delay: 200ms;">
-                    <div id="testimonial-carousel" class="flex overflow-x-auto scroll-smooth snap-x snap-mandatory">
-                        <!-- Testimonial Card 1 -->
-                        <div class="testimonial-card w-full md:w-1/2 flex-shrink-0 p-4">
-                            <div class="bg-white p-8 rounded-lg shadow-lg text-left h-full">
+        <section id="testimonials" class="py-16 md:py-20 bg-warm-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center max-w-3xl mx-auto fade-in-up">
+                    <h2 class="font-lora text-3xl md:text-4xl font-bold text-navy">What Our Guests Are Saying</h2>
+                </div>
+                <div class="mt-12 max-w-6xl mx-auto relative fade-in-up" style="transition-delay: 200ms;">
+                    <div id="testimonial-carousel" class="flex gap-x-6 overflow-x-auto scroll-smooth snap-x snap-mandatory -mx-4 px-4">
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
                                 <div class="flex justify-between items-center mb-4">
                                     <span class="text-yellow-500 text-2xl">★★★★★</span>
                                     <span class="text-sm font-semibold text-gray-500">From Yelp</span>
                                 </div>
-                                <p class="text-lg italic text-gray-700">"Our month-long stay was truly a pleasure... We highly recommend this property for anyone looking for a relaxing, secure, and well-equipped place to stay. Thank you Luxe Life Properties -- we will definitely be back!"</p>
-                                <p class="font-bold text-navy text-right mt-6">- Lucile, Inches Safety Solutions</p>
+                                <p class="text-base italic text-gray-700">"Our month-long stay was truly a pleasure... We highly recommend this property for anyone looking for a relaxing, secure, and well-equipped place to stay. Thank you Luxe Life Properties -- we will definitely be back!"</p>
+                                <p class="font-bold text-navy text-right mt-4">- Lucile, Inches Safety Solutions</p>
                             </div>
                         </div>
-                        <!-- Testimonial Card 2 -->
-                        <div class="testimonial-card w-full md:w-1/2 flex-shrink-0 p-4">
-                            <div class="bg-white p-8 rounded-lg shadow-lg text-left h-full">
-                                <div class="flex justify-between items-centered mb-4">
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
+                                <div class="flex justify-between items-center mb-4">
                                     <span class="text-yellow-500 text-2xl">★★★★★</span>
                                     <span class="text-sm font-semibold text-gray-500">From Furnished Finder</span>
                                 </div>
-                                <p class="text-lg italic text-gray-700">"Incredibly communicative, friendly, and professional—making the entire experience seamless... The interior is spotless, and the furniture is clean and comfortable, giving the space a welcoming, homey feel."</p>
-                                <p class="font-bold text-navy text-right mt-6">- Nesha</p>
+                                <p class="text-base italic text-gray-700">"Incredibly communicative, friendly, and professional—making the entire experience seamless... The interior is spotless, and the furniture is clean and comfortable, giving the space a welcoming, homey feel."</p>
+                                <p class="font-bold text-navy text-right mt-4">- Nesha</p>
                             </div>
                         </div>
-                        <!-- Testimonial Card 3 -->
-                        <div class="testimonial-card w-full md:w-1/2 flex-shrink-0 p-4">
-                            <div class="bg-white p-8 rounded-lg shadow-lg text-left h-full">
-                                <div class="flex justify-between items-centered mb-4">
+                        <div class="testimonial-card">
+                            <div class="bg-white p-6 rounded-lg shadow-lg text-left">
+                                <div class="flex justify-between items-center mb-4">
                                     <span class="text-yellow-500 text-2xl">★★★★★</span>
                                     <span class="text-sm font-semibold text-gray-500">From Furnished Finder</span>
                                 </div>
-                                <p class="text-lg italic text-gray-700">"This location was perfect for my needs! I travel a lot for my business... and need a residence that is move-in ready which is what this was. It is centrally located... I was grateful that there were no surprises... I would not hesitate to stay here again!"</p>
-                                <p class="font-bold text-navy text-right mt-6">- Kristina</p>
+                                <p class="text-base italic text-gray-700">"This location was perfect for my needs! I travel a lot for my business... and need a residence that is move-in ready which is what this was. It is centrally located... I was grateful that there were no surprises... I would not hesitate to stay here again!"</p>
+                                <p class="font-bold text-navy text-right mt-4">- Kristina</p>
                             </div>
                         </div>
                     </div>
-                    <div class="absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-0 md:-px-8">
-                        <button id="prev-testimonial" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-centered justify-center transition shadow-md"><</button>
-                        <button id="next-testimonial" class="bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-centered justify-center transition">></button>
+                    <div class="absolute top-1/2 -translate-y-1/2 flex justify-between w-full -mx-5 pointer-events-none">
+                        <button id="prev-testimonial" class="pointer-events-auto bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition shadow-md"><</button>
+                        <button id="next-testimonial" class="pointer-events-auto bg-white/50 hover:bg-white/80 text-navy rounded-full w-10 h-10 flex items-center justify-center transition shadow-md">></button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 6: Resident Resources (Live Portal) -->
         <section id="residents" class="py-20 md:py-28 bg-navy text-white">
             <div class="container mx-auto px-6 text-center fade-in-up">
                  <div id="resident-portal-logged-out">
@@ -341,13 +370,11 @@
                     <h2 class="font-lora text-3xl md:text-4xl font-bold">Welcome Back, <span id="resident-name"></span></h2>
                     <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">Your personal dashboard for managing your stay.</p>
                     <div class="mt-12 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
-                        <!-- Pay Rent Card -->
                         <div class="bg-white/10 p-6 rounded-lg">
                             <h3 class="font-lora text-2xl font-bold">Pay Rent</h3>
                             <p class="mt-2 text-white/80">Securely pay your rent online, view payment history, and set up auto-pay.</p>
                             <button disabled class="mt-4 btn bg-gray-500 text-white/70 cursor-not-allowed opacity-50 w-full text-center">Pay Now (Coming Soon)</button>
                         </div>
-                        <!-- Maintenance Card -->
                         <div class="bg-white/10 p-6 rounded-lg">
                             <h3 class="font-lora text-2xl font-bold">Maintenance Request</h3>
                             <p class="mt-2 text-white/80">Need something fixed? Submit and track maintenance requests with our team.</p>
@@ -359,7 +386,6 @@
             </div>
         </section>
 
-        <!-- Section 7: Partners -->
         <section id="partners" class="py-20 md:py-28 bg-white">
             <div class="container mx-auto px-6">
               <div class="text-center max-w-3xl mx-auto fade-in-up">
@@ -376,7 +402,6 @@
             </div>
           </section>
 
-        <!-- Section 8: Contact -->
         <section id="contact" class="py-20 md:py-28 bg-warm-white">
             <div class="container mx-auto px-6">
                  <div class="text-center max-w-3xl mx-auto fade-in-up">
@@ -390,20 +415,27 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
                                 <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-                                <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                                <input type="text" id="name" name="name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold" required>
                             </div>
                             <div>
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold" required>
                             </div>
-                             <div>
-                                <label for="date" class="block text-sm font-medium text-gray-700">Desired Move-in Date</label>
-                                <input type="date" id="date" name="date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                            <div>
+                                <label for="move-in-date" class="block text-sm font-medium text-gray-700">Move-in Date</label>
+                                <input type="date" id="move-in-date" name="move-in-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
                             </div>
-                             <div>
-                                <label for="stay" class="block text-sm font-medium text-gray-700">Length of Stay</label>
+                            <div>
+                                <label for="move-out-date" class="block text-sm font-medium text-gray-700">Move-out Date</label>
+                                <input type="date" id="move-out-date" name="move-out-date" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                            </div>
+                             <div class="sm:col-span-2">
+                                <p class="text-sm text-gray-600">Calculated stay duration: <strong id="stay-duration">-- days</strong></p>
+                            </div>
+                             <div class="sm:col-span-2">
+                                <label for="stay" class="block text-sm font-medium text-gray-700">Notes on Length of Stay</label>
                                 <p class="text-xs text-gray-500 -mt-1 mb-2">Minimum stay of 30 days required.</p>
-                                <input type="text" id="stay" name="stay" placeholder="e.g., 3 months" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
+                                <input type="text" id="stay" name="stay" placeholder="e.g., 3 months, flexible dates" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold">
                             </div>
                         </div>
                         <div class="mt-6">
@@ -411,7 +443,7 @@
                             <textarea id="message" name="message" rows="4" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-gold focus:border-gold"></textarea>
                         </div>
                         <div class="mt-6 text-right">
-                            <button type="submit" class="btn btn-navy">
+                            <button type="submit" class="btn btn-primary">
                                 Send Inquiry
                             </button>
                         </div>
@@ -422,14 +454,60 @@
         </section>
     </main>
     
-    <!-- Login Modal -->
-    <div id="auth-modal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-centered justify-center p-4 hidden opacity-0">
-        <div class="modal-content bg-white w-full max-w-md p-8 rounded-lg shadow-xl opacity-0 transform -translate-y-10">
-            <div class="flex justify-between items-centered mb-6">
-                <h2 id="modal-title" class="font-lora text-2xl font-bold text-navy">Resident Login</h2>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+    <footer class="bg-navy text-white">
+        <div class="container mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
+                <div>
+                    <h3 class="font-semibold text-lg">Luxe Life Properties</h3>
+                    <p class="mt-2 text-gray-400">Hospitality-focused stays in Sacramento, CA.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg">Contact & Social</h4>
+                    <ul class="mt-2 space-y-2 text-gray-400">
+                        <li><a href="mailto:info@luxelp.com" class="hover:text-white">info@luxelp.com</a></li>
+                        <li><a href="tel:9167610211" class="hover:text-white">916.761.0211</a></li>
+                        <li><a href="#" class="hover:text-white">View on Furnished Finder</a></li>
+                    </ul>
+                     <div class="mt-4 flex items-center justify-center md:justify-start space-x-4">
+                        <a href="https://www.instagram.com/luxe_life.properties?igsh=MXIxNm92dXlqeDh1aw%3D%3D&utm_source=qr" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Instagram">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802c-3.239 0-3.593.011-4.834.069-2.734.124-3.958 1.348-4.082 4.082-.058 1.241-.069 1.595-.069 4.834s.011 3.593.069 4.834c.124 2.734 1.348 3.958 4.082 4.082 1.241.058 1.595.069 4.834.069s3.593-.011 4.834-.069c2.734-.124 3.958-1.348 4.082-4.082.058-1.241-.069-1.595-.069-4.834s-.011-3.593-.069-4.834c-.124-2.734-1.348-3.958-4.082-4.082-1.241-.058-1.595-.069-4.834-.069zm0 4.805c-1.954 0-3.519 1.565-3.519 3.519s1.565 3.519 3.519 3.519 3.519-1.565 3.519-3.519-1.565-3.519-3.519-3.519zm0 5.234c-.949 0-1.715-.766-1.715-1.715s.766-1.715 1.715-1.715 1.715.766 1.715 1.715-.766 1.715-1.715 1.715zm4.352-6.85c-.598 0-1.082.484-1.082 1.082s.484 1.082 1.082 1.082 1.082-.484 1.082-1.082-.484-1.082-1.082-1.082z"></path></svg>
+                        </a>
+                        <a href="https://www.facebook.com/profile.php?id=61577969854119" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Facebook">
+                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v7.046C18.343 21.128 22 16.991 22 12z"></path></svg>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-lg">Legal & Compliance</h4>
+                    <ul class="mt-2 space-y-2 text-gray-400">
+                        <li><a href="#privacy" id="privacy-policy-link" class="hover:text-white cursor-pointer">Privacy Policy</a></li>
+                        <li><a href="#accessibility" id="accessibility-statement-link" class="hover:text-white cursor-pointer">Accessibility Statement</a></li>
+                        <li><a href="#donotsell" id="donotsell-link" class="hover:text-white cursor-pointer">Do Not Sell My Information</a></li>
+                    </ul>
+                </div>
+                <div class="flex flex-col items-center md:items-start">
+                    <h4 class="font-semibold text-lg">Fair Housing</h4>
+                     <a href="https://www.hud.gov/fairhousing" target="_blank" class="flex items-center text-white hover:text-gold transition-colors">
+                        <p class="text-2xl mt-2" title="Equal Housing Opportunity">🏠</p>
+                        <p class="text-sm text-gray-400 mt-2 ml-2">Equal Housing<br>Opportunity</p>
+                    </a>
+                </div>
             </div>
-            <!-- Auth Forms -->
+            <div class="mt-8 border-t border-gray-700 pt-6 text-center text-gray-500 text-sm">
+                <p>© 2025 Luxe Life Properties. All Rights Reserved.</p>
+                <p class="mt-4 text-xs text-gray-500 max-w-3xl mx-auto">
+                    Luxe Life Properties features select local businesses as a courtesy to our guests. These listings are not formal endorsements, and each provider operates independently. Guests are encouraged to engage providers at their discretion, as Luxe Life Properties is not involved in third-party agreements and assumes no responsibility for services rendered or outcomes that may result.
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <div id="auth-modal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-content bg-white w-full max-w-md p-8 rounded-lg shadow-xl opacity-0 transform -translate-y-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modal-title" class="font-lora text-2xl font-bold text-navy">Resident Login</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl leading-none">×</button>
+            </div>
             <div id="login-form-container">
                 <form id="login-form">
                     <div class="mb-4">
@@ -442,7 +520,7 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-full">Login</button>
                 </form>
-                 <p class="text-sm text-centered mt-4 text-gray-600">First time here? <button id="show-signup-btn" class="font-semibold text-gold hover:underline">Create an account</button></p>
+                 <p class="text-sm text-center mt-4 text-gray-600">First time here? <button id="show-signup-btn" class="font-semibold text-gold hover:underline">Create an account</button></p>
             </div>
             <div id="signup-form-container" class="hidden">
                  <form id="signup-form">
@@ -457,103 +535,134 @@
                     <div class="mb-4">
                         <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
                         <input type="password" id="signup-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-gold focus:border-gold">
-                        <!-- Password strength bar -->
-                        <div id="password-strength" class="mt-2 h-2 w-full bg-gray-200 rounded">
-                            <div id="password-strength-bar" class="h-2 rounded w-0"></div>
+                        <div class="mt-2">
+                            <div id="password-strength-bar" class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="password-strength-progress" class="h-2 rounded-full transition-all" style="width: 0%"></div>
+                            </div>
+                            <p id="password-strength-text" class="text-xs mt-1 text-gray-500"></p>
                         </div>
-                        <p id="password-strength-text" class="text-xs mt-1"></p>
                     </div>
                     <button type="submit" class="btn btn-primary w-full">Sign Up</button>
                 </form>
-                <p class="text-sm text-centered mt-4 text-gray-600">Already have an account? <button id="show-login-btn" class="font-semibold text-gold hover:underline">Login</button></p>
+                <p class="text-sm text-center mt-4 text-gray-600">Already have an account? <button id="show-login-btn" class="font-semibold text-gold hover:underline">Login</button></p>
             </div>
-             <div id="auth-error" class="text-red-600 text-sm text-centered mt-4 hidden"></div>
+             <div id="auth-error" class="text-red-600 text-sm text-center mt-4 hidden"></div>
         </div>
     </div>
 
-    <footer class="bg-navy text-white">
-        <div class="container mx-auto px-6 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-centered md:text-left">
-                <div>
-                    <h3 class="font-semibold text-lg">Luxe Life Properties</h3>
-                    <p class="mt-2 text-gray-400">Hospitality-focused stays in Sacramento, CA.</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-lg">Contact &amp; Social</h4>
-                    <ul class="mt-2 space-y-2 text-gray-400">
-                        <li><a href="mailto:info@luxelp.com" class="hover:text-white">info@luxelp.com</a></li>
-                        <li><a href="tel:9167610211" class="hover:text-white">916.761.0211</a></li>
-                        <li><a href="#" class="hover:text-white">View on Furnished Finder</a></li>
-                    </ul>
-                     <div class="mt-4 flex items-centered justify-centered md:justify-start space-x-4">
-                        <a href="https://www.instagram.com/luxe_life.properties?igsh=MXIxNm92dXlqeDh1aw%3D%3D&amp;utm_source=qr" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Instagram">
-                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802c-3.239 0-3.593.011-4.834.069-2.734.124-3.958 1.348-4.082 4.082-.058 1.241-.069 1.595-.069 4.834s.011 3.593.069 4.834c.124 2.734 1.348 3.958 4.082 4.082 1.241.058 1.595.069 4.834.069s3.593-.011 4.834-.069c2.734-.124 3.958-1.348 4.082-4.082.058-1.241.069-1.595.069-4.834s-.011-3.593-.069-4.834c-.124-2.734-1.348-3.958-4.082-4.082-1.241-.058-1.595-.069-4.834-.069zm0 4.805c-1.954 0-3.519 1.565-3.519 3.519s1.565 3.519 3.519 3.519 3.519-1.565 3.519-3.519-1.565-3.519-3.519-3.519zm0 5.234c-.949 0-1.715-.766-1.715-1.715s.766-1.715 1.715-1.715 1.715.766 1.715 1.715-.766 1.715-1.715 1.715zm4.352-6.85c-.598 0-1.082.484-1.082 1.082s.484 1.082 1.082 1.082 1.082-.484 1.082-1.082-.484-1.082-1.082-1.082z"></path>
-                            </svg>
-                        </a>
-                        <a href="https://www.facebook.com/profile.php?id=61577969854119" target="_blank" class="inline-block text-gold hover:text-white transition-colors" aria-label="Follow us on Facebook">
-                            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v7.046C18.343 21.128 22 16.991 22 12z"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-                <div class="flex flex-col items-centered md:items-start">
-                    <h4 class="font-semibold text-lg">Compliance</h4>
-                     <a href="https://www.hud.gov/fairhousing" target="_blank" class="flex items-centered text-white hover:text-gold transition-colors">
-                        <p class="text-4xl mt-2" title="Equal Housing Opportunity">🏠</p>
-                        <p class="text-sm text-gray-400 mt-2 ml-2">Equal Housing<br>Opportunity</p>
-                    </a>
-                </div>
+    <div id="privacy-modal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-content bg-white w-full max-w-2xl p-8 rounded-lg shadow-xl opacity-0 transform -translate-y-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-lora text-2xl font-bold text-navy">Privacy Policy</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl leading-none">×</button>
             </div>
-            <div class="mt-8 border-t border-gray-700 pt-6 text-centered text-gray-500 text-sm">
-                <p>&copy; 2025 Luxe Life Properties. All Rights Reserved.</p>
-                <p class="mt-4 text-xs text-gray-500 max-w-3xl mx-auto">
-                    Luxe Life Properties features select local businesses as a courtesy to our guests. These listings are not formal endorsements, and each provider operates independently. Guests are encouraged to engage providers at their discretion, as Luxe Life Properties is not involved in third-party agreements and assumes no responsibility for services rendered or outcomes that may result.
-                </p>
+            <div class="modal-body space-y-4">
+                <p><strong>Last Updated: August 10, 2025</strong></p>
+                <p>Luxe Life Properties ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.</p>
+                <h3 class="font-bold text-lg text-navy">Information We Collect</h3>
+                <p>We may collect personal information that you voluntarily provide to us, such as your name and email address when you use our contact form or create a resident account. We also collect data related to your use of our services, including inquiries and interactions with our AI concierge. Information is processed by third-party services, including:</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>Google Firebase:</strong> For user authentication, database services, and website hosting.</li>
+                    <li><strong>Google Maps:</strong> To provide location-based services and maps.</li>
+                    <li><strong>Google AI (Gemini):</strong> To power our AI concierge feature. Your queries may be processed by Google to provide responses.</li>
+                </ul>
+                <h3 class="font-bold text-lg text-navy">Use of Your Information</h3>
+                <p>We use the information we collect to operate our website, respond to your inquiries, provide customer service, and manage resident accounts.</p>
+                <h3 class="font-bold text-lg text-navy">Your Rights Under the CCPA</h3>
+                <p>If you are a California resident, you have the following rights:</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>The right to know:</strong> You can request information about the personal information we collect, use, and disclose.</li>
+                    <li><strong>The right to delete:</strong> You can request the deletion of your personal information.</li>
+                    <li><strong>The right to opt-out:</strong> We do not sell personal information. You may opt-out of the "sharing" of your information for cross-context behavioral advertising by contacting us.</li>
+                </ul>
+                <p>To exercise these rights, please contact us at <a href="mailto:info@luxelp.com" class="text-gold underline">info@luxelp.com</a>.</p>
             </div>
         </div>
-    </footer>
+    </div>
+
+    <div id="accessibility-modal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-content bg-white w-full max-w-2xl p-8 rounded-lg shadow-xl opacity-0 transform -translate-y-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-lora text-2xl font-bold text-navy">Accessibility Statement</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl leading-none">×</button>
+            </div>
+            <div class="modal-body space-y-4">
+                <p>Luxe Life Properties is committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards.</p>
+                <h3 class="font-bold text-lg text-navy">Conformance Status</h3>
+                <p>We aim for our website to conform with the Web Content Accessibility Guidelines (WCAG) 2.1 level AA. These guidelines explain how to make web content more accessible for people with a wide array of disabilities.</p>
+                <h3 class="font-bold text-lg text-navy">Feedback</h3>
+                <p>We welcome your feedback on the accessibility of our website. If you encounter accessibility barriers or have suggestions on how we can improve, please contact us:</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>Email:</strong> <a href="mailto:info@luxelp.com" class="text-gold underline">info@luxelp.com</a></li>
+                    <li><strong>Phone:</strong> <a href="tel:9167610211" class="text-gold underline">916.761.0211</a></li>
+                </ul>
+                <p>We try to respond to feedback within 5 business days.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="donotsell-modal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-content bg-white w-full max-w-2xl p-8 rounded-lg shadow-xl opacity-0 transform -translate-y-10">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-lora text-2xl font-bold text-navy">Do Not Sell or Share My Personal Information</h2>
+                <button data-close-button class="text-gray-500 hover:text-gray-800 text-3xl leading-none">×</button>
+            </div>
+            <div class="modal-body space-y-4">
+                <p>Luxe Life Properties does not sell your personal information for monetary value.</p>
+                <p>Under the California Consumer Privacy Act (CCPA), you have the right to opt out of the "sale" or "sharing" of your personal information. While we do not sell data in the traditional sense, some of our third-party partners (like analytics or advertising services) may collect information through our site in a way that could be defined as "sharing" under the CCPA.</p>
+                <p>To exercise your right to opt-out, please contact us with your request at <a href="mailto:info@luxelp.com" class="text-gold underline">info@luxelp.com</a>. We will process your request in accordance with California law.</p>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        
+        import { GoogleGenerativeAI } from "https://cdn.jsdelivr.net/npm/@google/generative-ai/+esm";
+
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Encapsulate all logic within DOMContentLoaded ---
+            
+            // Your web app's Firebase configuration
+            const firebaseConfig = {
+              apiKey: "AIzaSyD9z9rp07fK2nQt5bT32GWLhyqf2pjXxGg",
+              authDomain: "luxe-life-properties.firebaseapp.com",
+              projectId: "luxe-life-properties",
+              storageBucket: "luxe-life-properties.appspot.com",
+              messagingSenderId: "891605931606",
+              appId: "1:891605931606:web:9913ddba4e447f16f20df7"
+            };
+
+            // --- ACTION REQUIRED: Paste your Google AI API Key here ---
+            const GEMINI_API_KEY = "YOUR_GOOGLE_AI_API_KEY";
 
             // --- Firebase Initialization ---
             try {
-                // Static Firebase configuration provided by the user. Replace the placeholder values with your actual config.
-                const firebaseConfig = {
-                    apiKey: "AIzaSy...-...",
-                    authDomain: "your-project-id.firebaseapp.com",
-                    projectId: "your-project-id",
-                    storageBucket: "your-project-id.appspot.com",
-                    messagingSenderId: "1234567890",
-                    appId: "1:12345...:web:..."
-                };
-                
+                if (!firebaseConfig || !firebaseConfig.apiKey) {
+                    throw new Error("Firebase config is missing or incomplete. Please add it to the script.");
+                }
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
                 const db = getFirestore(app);
-                initializeAppScripts(auth, db); // Pass auth and db objects to the main app function
+                initializeAppScripts(auth, db);
             } catch (error) {
-                console.error("Firebase Initialization Failed:", error);
+                console.error("Initialization Failed:", error);
                 const residentPortal = document.getElementById('residents');
                 if (residentPortal) {
-                    residentPortal.innerHTML = 
+                    residentPortal.innerHTML = `
                         <div class="container mx-auto px-6 text-center">
-                            <h2 class="font-lora text-3xl md:text-4xl font-bold">Resident Portal Temporarily Unavailable</h2>
-                            <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">An error occurred during setup. Please check the console for details.</p>
+                            <h2 class="font-lora text-3xl md:text-4xl font-bold">Portal Temporarily Unavailable</h2>
+                            <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">A configuration error occurred. Please contact support.</p>
                         </div>
-                    ;
+                    `;
                 }
+                const conciergeButton = document.getElementById('concierge-button');
+                if(conciergeButton) conciergeButton.disabled = true;
             }
 
             function initializeAppScripts(auth, db) {
-                // --- Standard UI functionality ---
+                // --- Mobile Menu ---
                 const mobileMenuButton = document.getElementById('mobile-menu-button');
                 const mobileMenu = document.getElementById('mobile-menu');
                 mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
@@ -566,6 +675,7 @@
                     });
                 });
 
+                // --- Active Nav Link Scrolling ---
                 const navLinks = document.querySelectorAll('.nav-link');
                 const sections = document.querySelectorAll('main > section, footer');
                 const observer = new IntersectionObserver(entries => {
@@ -584,29 +694,23 @@
                 }, { threshold: 0.5 });
                 sections.forEach(section => { if(section.id) observer.observe(section); });
 
+                // --- Fade-in Animations ---
                 const faders = document.querySelectorAll('.fade-in-up');
                 const faderObserver = new IntersectionObserver(entries => {
                     entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('is-visible');
-                        }
+                        if (entry.isIntersecting) entry.target.classList.add('is-visible');
                     });
                 }, { threshold: 0.1 });
                 faders.forEach(fader => faderObserver.observe(fader));
-
+                
+                // --- Property Gallery ---
                 const images = [
-                    'https://i.imgur.com/L7rpcwK.jpeg',
-                    'https://i.imgur.com/ScHN21W.jpeg',
-                    'https://i.imgur.com/Cq6nPzF.jpeg',
-                    'https://i.imgur.com/JDSjv2K.jpeg',
-                    'https://i.imgur.com/x9TRwGB.jpeg',
-                    'https://i.imgur.com/wzCq4Nd.jpeg',
-                    'https://i.imgur.com/fKgiUlR.jpeg',
-                    'https://i.imgur.com/ZCtQ8Qo.jpeg',
-                    'https://i.imgur.com/1pXPZnq.jpeg',
-                    'https://i.imgur.com/el27KUB.jpeg'
+                    'https://i.imgur.com/VgWemC1.jpeg', 'https://i.imgur.com/L7rpcwK.jpeg',
+                    'https://i.imgur.com/ScHN21W.jpeg', 'https://i.imgur.com/Cq6nPzF.jpeg',
+                    'https://i.imgur.com/JDSjv2K.jpeg', 'https://i.imgur.com/x9TRwGB.jpeg',
+                    'https://i.imgur.com/wzCq4Nd.jpeg', 'https://i.imgur.com/fKgiUlR.jpeg',
+                    'https://i.imgur.com/ZCtQ8Qo.jpeg', 'https://i.imgur.com/1pXPZnq.jpeg', 'https://i.imgur.com/el27KUB.jpeg'
                 ];
-
                 let currentImageIndex = 0;
                 const mainImage = document.getElementById('gallery-main-image');
                 const prevBtn = document.getElementById('prev-btn');
@@ -614,8 +718,7 @@
                 const thumbnailContainer = document.getElementById('thumbnail-container');
                 const detailsToggleBtn = document.getElementById('details-toggle-btn');
                 const propertyDetails = document.getElementById('property-details');
-                let detailsVisible = false;
-
+                
                 function updateGallery() {
                     if (!mainImage) return;
                     mainImage.style.opacity = 0;
@@ -624,163 +727,176 @@
                         mainImage.style.opacity = 1;
                     }, 250);
                     
-                    thumbnailContainer.innerHTML = ''; // Clear existing thumbnails
+                    thumbnailContainer.innerHTML = '';
                     images.forEach((src, index) => {
                         const thumb = document.createElement('img');
                         thumb.src = src; 
-                        thumb.alt = Amara Retreat Photo ${index + 1};
-                        thumb.className = 'thumbnail w-full h-auto object-cover aspect-square rounded-md cursor-pointer border-4 border-transparent transition-all hover:opacity-80';
+                        thumb.alt = `Amara Retreat Photo ${index + 1}`;
+                        thumb.className = 'w-full h-auto object-cover aspect-square rounded-md cursor-pointer border-4 border-transparent transition-all hover:opacity-80';
                         if(index === currentImageIndex) thumb.classList.add('border-gold');
                         thumb.addEventListener('click', () => { currentImageIndex = index; updateGallery(); });
                         thumbnailContainer.appendChild(thumb);
                     });
                 }
-                
                 if(prevBtn) prevBtn.addEventListener('click', () => { currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; updateGallery(); });
                 if(nextBtn) nextBtn.addEventListener('click', () => { currentImageIndex = (currentImageIndex + 1) % images.length; updateGallery(); });
-                updateGallery();
+                if(detailsToggleBtn) {
+                  updateGallery();
+                  detailsToggleBtn.addEventListener('click', () => {
+                      const isVisible = !propertyDetails.classList.contains('hidden');
+                      if(isVisible) {
+                          propertyDetails.classList.add('hidden');
+                          detailsToggleBtn.textContent = "View Details & Gallery";
+                      } else {
+                          propertyDetails.classList.remove('hidden');
+                          detailsToggleBtn.textContent = "Hide Details";
+                          setTimeout(() => propertyDetails.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                      }
+                  });
+                }
+                
+                // --- Generic Modal Logic ---
+                const closeTriggers = document.querySelectorAll('[data-close-button]');
 
-                detailsToggleBtn.addEventListener('click', () => {
-                    detailsVisible = !detailsVisible;
-                    propertyDetails.style.transition = 'opacity 0.5s ease, max-height 0.5s ease';
-                    if(detailsVisible) {
-                        propertyDetails.classList.remove('hidden');
-                        detailsToggleBtn.textContent = "Hide Details";
-                         setTimeout(() => {
-                            propertyDetails.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    } else {
-                        propertyDetails.classList.add('hidden');
-                        detailsToggleBtn.textContent = "View Details & Gallery";
-                        document.getElementById('property').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
+                function openModal(modal) {
+                    if (modal == null) return;
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.classList.remove('opacity-0');
+                        modal.querySelector('.modal-content').classList.remove('opacity-0', '-translate-y-10');
+                    }, 10);
+                }
+
+                function closeModal(modal) {
+                    if (modal == null) return;
+                    modal.classList.add('opacity-0');
+                    modal.querySelector('.modal-content').classList.add('opacity-0', '-translate-y-10');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
+
+                document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) closeModal(overlay);
+                    });
+                });
+
+                closeTriggers.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modal = button.closest('.modal-overlay');
+                        closeModal(modal);
+                    });
+                });
+
+                document.getElementById('privacy-policy-link')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal(document.getElementById('privacy-modal'));
+                });
+                document.getElementById('accessibility-statement-link')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal(document.getElementById('accessibility-modal'));
+                });
+                document.getElementById('donotsell-link')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    openModal(document.getElementById('donotsell-modal'));
                 });
                 
                 // --- Firebase Auth UI Management ---
                 const authModal = document.getElementById('auth-modal');
-                const modalContent = authModal.querySelector('.modal-content');
                 const loginModalBtn = document.getElementById('login-modal-btn');
-                const closeModalBtn = document.getElementById('close-modal-btn');
-                
                 const loginFormContainer = document.getElementById('login-form-container');
                 const signupFormContainer = document.getElementById('signup-form-container');
                 const showSignupBtn = document.getElementById('show-signup-btn');
                 const showLoginBtn = document.getElementById('show-login-btn');
                 const modalTitle = document.getElementById('modal-title');
-
                 const loggedOutView = document.getElementById('resident-portal-logged-out');
                 const loggedInView = document.getElementById('resident-portal-logged-in');
                 const residentNameSpan = document.getElementById('resident-name');
                 const logoutBtn = document.getElementById('logout-btn');
                 const authErrorDiv = document.getElementById('auth-error');
 
-                const openModal = () => {
-                    authModal.classList.remove('hidden');
-                    setTimeout(() => {
-                        authModal.classList.remove('opacity-0');
-                        modalContent.classList.remove('opacity-0', '-translate-y-10');
-                    }, 10);
-                };
+                loginModalBtn?.addEventListener('click', () => openModal(authModal));
 
-                const closeModal = () => {
-                    authModal.classList.add('opacity-0');
-                    modalContent.classList.add('opacity-0', '-translate-y-10');
-                    setTimeout(() => {
-                        authModal.classList.add('hidden');
-                        authErrorDiv.classList.add('hidden');
-                    }, 300);
-                };
-
-                loginModalBtn.addEventListener('click', openModal);
-                closeModalBtn.addEventListener('click', closeModal);
-                authModal.addEventListener('click', (e) => {
-                    if (e.target === authModal) closeModal();
-                });
-
-                showSignupBtn.addEventListener('click', () => {
+                showSignupBtn?.addEventListener('click', () => {
                     loginFormContainer.classList.add('hidden');
                     signupFormContainer.classList.remove('hidden');
                     modalTitle.textContent = "Create Resident Account";
                     authErrorDiv.classList.add('hidden');
                 });
-                showLoginBtn.addEventListener('click', () => {
+                showLoginBtn?.addEventListener('click', () => {
                     signupFormContainer.classList.add('hidden');
                     loginFormContainer.classList.remove('hidden');
                     modalTitle.textContent = "Resident Login";
                     authErrorDiv.classList.add('hidden');
                 });
-
-                const loginForm = document.getElementById('login-form');
+                
+                // Signup, Login, and Password Strength
                 const signupForm = document.getElementById('signup-form');
+                const loginForm = document.getElementById('login-form');
+                const signupPasswordInput = document.getElementById('signup-password');
+                const strengthProgressBar = document.getElementById('password-strength-progress');
+                const strengthText = document.getElementById('password-strength-text');
 
-                signupForm.addEventListener('submit', async (e) => {
+                signupPasswordInput?.addEventListener('input', () => {
+                    const password = signupPasswordInput.value;
+                    if(password.length === 0) {
+                        strengthProgressBar.style.width = '0%';
+                        strengthText.textContent = '';
+                        return;
+                    }
+                    let score = 0;
+                    if (password.length >= 8) score++;
+                    if (password.length >= 12) score++;
+                    if (/[A-Z]/.test(password)) score++;
+                    if (/[0-9]/.test(password)) score++;
+                    if (/[^A-Za-z0-9]/.test(password)) score++;
+                    
+                    const strengthLevels = {
+                        0: { width: '20%', color: 'bg-red-500', text: 'Very Weak' }, 1: { width: '20%', color: 'bg-red-500', text: 'Weak' },
+                        2: { width: '40%', color: 'bg-yellow-500', text: 'Fair' }, 3: { width: '60%', color: 'bg-yellow-500', text: 'Good' },
+                        4: { width: '80%', color: 'bg-green-500', text: 'Strong' }, 5: { width: '100%', color: 'bg-green-500', text: 'Very Strong' },
+                    };
+                    const { width, color, text } = strengthLevels[score];
+                    strengthProgressBar.style.width = width;
+                    strengthProgressBar.className = `h-2 rounded-full transition-all ${color}`;
+                    strengthText.textContent = text;
+                });
+                
+                signupForm?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const signupButton = signupForm.querySelector('button[type="submit"]');
-                    signupButton.disabled = true;
-                    signupButton.innerHTML = <span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>;
+                    const btn = e.submitter;
+                    btn.disabled = true; btn.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
                     authErrorDiv.classList.add('hidden');
-
-                    const name = document.getElementById('signup-name').value;
-                    const email = document.getElementById('signup-email').value;
-                    const password = document.getElementById('signup-password').value;
-
                     try {
-                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                        await updateProfile(userCredential.user, { displayName: name });
+                        const userCredential = await createUserWithEmailAndPassword(auth, signupForm.email.value, signupForm.password.value);
+                        await updateProfile(userCredential.user, { displayName: signupForm.name.value });
                         signupForm.reset();
-                        closeModal();
+                        closeModal(authModal);
                     } catch (error) {
-                        console.error("Signup Error:", error.code, error.message);
-                        switch (error.code) {
-                            case 'auth/operation-not-allowed':
-                                authErrorDiv.textContent = 'Error: Email sign-up must be enabled in the Firebase Console.';
-                                break;
-                            case 'auth/email-already-in-use':
-                                authErrorDiv.textContent = 'This email address is already in use.';
-                                break;
-                            case 'auth/weak-password':
-                                authErrorDiv.textContent = 'Password should be at least 6 characters.';
-                                break;
-                            case 'auth/invalid-email':
-                                authErrorDiv.textContent = 'Please enter a valid email address.';
-                                break;
-                            default:
-                                authErrorDiv.textContent = 'An error occurred during sign up. Please try again.';
-                        }
+                        authErrorDiv.textContent = error.message;
                         authErrorDiv.classList.remove('hidden');
                     } finally {
-                        signupButton.disabled = false;
-                        signupButton.textContent = 'Sign Up';
+                        btn.disabled = false; btn.textContent = 'Sign Up';
                     }
                 });
 
-                loginForm.addEventListener('submit', async (e) => {
+                loginForm?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const loginButton = loginForm.querySelector('button[type="submit"]');
-                    loginButton.disabled = true;
-                    loginButton.innerHTML = <span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>;
+                    const btn = e.submitter;
+                    btn.disabled = true; btn.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
                     authErrorDiv.classList.add('hidden');
-
-                    const email = document.getElementById('login-email').value;
-                    const password = document.getElementById('login-password').value;
-
                     try {
-                        await signInWithEmailAndPassword(auth, email, password);
+                        await signInWithEmailAndPassword(auth, loginForm.email.value, loginForm.password.value);
                         loginForm.reset();
-                        closeModal();
+                        closeModal(authModal);
                     } catch (error) {
-                        console.error("Login Error:", error.code, error.message);
-                        authErrorDiv.textContent = 'Invalid email or password. Please try again.';
+                        authErrorDiv.textContent = 'Invalid email or password.';
                         authErrorDiv.classList.remove('hidden');
                     } finally {
-                        loginButton.disabled = false;
-                        loginButton.textContent = 'Login';
+                        btn.disabled = false; btn.textContent = 'Login';
                     }
                 });
 
-                logoutBtn.addEventListener('click', () => {
-                    signOut(auth).catch(error => console.error("Sign out error", error));
-                });
+                logoutBtn?.addEventListener('click', () => signOut(auth));
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
@@ -794,119 +910,137 @@
                     }
                 });
 
-                // Password strength indicator for sign-up form
-                const signupPasswordInput = document.getElementById('signup-password');
-                const strengthBar = document.getElementById('password-strength-bar');
-                const strengthText = document.getElementById('password-strength-text');
+                // --- Contact Form & Duration Calculation ---
+                const contactForm = document.getElementById('contact-form');
+                const moveInDateInput = document.getElementById('move-in-date');
+                const moveOutDateInput = document.getElementById('move-out-date');
+                const stayDurationSpan = document.getElementById('stay-duration');
 
-                function evaluatePasswordStrength(password) {
-                    let strength = 0;
-                    if (password.length >= 8) strength++;
-                    if (/[A-Z]/.test(password)) strength++;
-                    if (/[0-9]/.test(password)) strength++;
-                    if (/[^A-Za-z0-9]/.test(password)) strength++;
-                    return strength;
+                function calculateStayDuration() {
+                    if (!moveInDateInput || !moveOutDateInput || !stayDurationSpan) return;
+                    const startDate = moveInDateInput.value;
+                    const endDate = moveOutDateInput.value;
+
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        if (end > start) {
+                            const diffTime = Math.abs(end - start);
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            stayDurationSpan.textContent = `${diffDays} days`;
+                        } else {
+                            stayDurationSpan.textContent = 'Invalid dates';
+                        }
+                    } else {
+                        stayDurationSpan.textContent = '-- days';
+                    }
                 }
 
-                signupPasswordInput.addEventListener('input', () => {
-                    const password = signupPasswordInput.value;
-                    const strength = evaluatePasswordStrength(password);
-                    let width;
-                    let color;
-                    let text;
-                    if (!password) {
-                        width = '0%';
-                        color = '#ef4444';
-                        text = '';
-                    } else if (strength <= 1) {
-                        width = '33%';
-                        color = '#ef4444';
-                        text = 'Weak';
-                    } else if (strength === 2) {
-                        width = '66%';
-                        color = '#f59e0b';
-                        text = 'Medium';
-                    } else {
-                        width = '100%';
-                        color = '#10b981';
-                        text = 'Strong';
-                    }
-                    strengthBar.style.width = width;
-                    strengthBar.style.backgroundColor = color;
-                    strengthText.textContent = text;
-                });
+                moveInDateInput?.addEventListener('change', calculateStayDuration);
+                moveOutDateInput?.addEventListener('change', calculateStayDuration);
 
-                // Contact Form Logic
-                const contactForm = document.getElementById('contact-form');
-                const contactSuccess = document.getElementById('contact-success');
-                contactForm.addEventListener('submit', async (e) => {
+                contactForm?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    const submitButton = contactForm.querySelector('button[type="submit"]');
-                    submitButton.disabled = true;
-                    submitButton.innerHTML = <span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>;
-
-                    const inquiryData = {
-                        name: document.getElementById('name').value,
-                        email: document.getElementById('email').value,
-                        moveInDate: document.getElementById('date').value,
-                        lengthOfStay: document.getElementById('stay').value,
-                        message: document.getElementById('message').value,
-                        createdAt: serverTimestamp()
-                    };
-
+                    const btn = e.submitter;
+                    btn.disabled = true; btn.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
                     try {
-                        // Save contact inquiries directly to a collection named 'contactInquiries'
-                        await addDoc(collection(db, 'contactInquiries'), inquiryData);
-                        
+                        await addDoc(collection(db, "contactInquiries"), {
+                            name: contactForm.name.value, email: contactForm.email.value,
+                            moveInDate: moveInDateInput.value,
+                            moveOutDate: moveOutDateInput.value,
+                            lengthOfStayNotes: contactForm.stay.value,
+                            message: contactForm.message.value, createdAt: serverTimestamp()
+                        });
                         contactForm.reset();
-                        contactSuccess.classList.remove('hidden');
-                        setTimeout(() => contactSuccess.classList.add('hidden'), 5000);
-
+                        calculateStayDuration();
+                        document.getElementById('contact-success').classList.remove('hidden');
+                        setTimeout(() => document.getElementById('contact-success').classList.add('hidden'), 5000);
                     } catch (error) {
-                        console.error("Error submitting inquiry: ", error);
-                        alert("There was an error submitting your message. Please try again.");
+                        console.error("Error writing document: ", error);
+                        alert("There was an error submitting your form.");
                     } finally {
-                        submitButton.disabled = false;
-                        submitButton.textContent = 'Send Inquiry';
+                        btn.disabled = false; btn.textContent = 'Send Inquiry';
                     }
-                });
-
-                // Testimonial Carousel
-                const carousel = document.getElementById('testimonial-carousel');
-                const prevTestimonialBtn = document.getElementById('prev-testimonial');
-                const nextTestimonialBtn = document.getElementById('next-testimonial');
-                let autoScrollInterval;
-
-                const startAutoScroll = () => {
-                    autoScrollInterval = setInterval(() => {
-                        const scrollWidth = carousel.scrollWidth;
-                        const clientWidth = carousel.clientWidth;
-                        if (carousel.scrollLeft + clientWidth >= scrollWidth) {
-                            carousel.scrollTo({ left: 0, behavior: 'smooth' });
-                        } else {
-                            carousel.scrollBy({ left: clientWidth, behavior: 'smooth' });
-                        }
-                    }, 7000);
-                };
-
-                const stopAutoScroll = () => {
-                    clearInterval(autoScrollInterval);
-                };
-
-                prevTestimonialBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
-                });
-
-                nextTestimonialBtn.addEventListener('click', () => {
-                    carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
                 });
                 
-                carousel.addEventListener('mouseenter', stopAutoScroll);
-                carousel.addEventListener('mouseleave', startAutoScroll);
+                // --- Testimonial Carousel ---
+                const carousel = document.getElementById('testimonial-carousel');
+                if (carousel) {
+                    const prevTestimonialBtn = document.getElementById('prev-testimonial');
+                    const nextTestimonialBtn = document.getElementById('next-testimonial');
+                    let autoScrollInterval;
 
-                startAutoScroll();
+                    const getScrollAmount = () => {
+                        const firstCard = carousel.querySelector('.testimonial-card');
+                        if (!firstCard) return carousel.clientWidth / 3;
+                        const gap = parseInt(window.getComputedStyle(carousel).gap);
+                        return firstCard.offsetWidth + gap;
+                    };
+                    const stopAutoScroll = () => clearInterval(autoScrollInterval);
+                    const startAutoScroll = () => {
+                        stopAutoScroll();
+                        autoScrollInterval = setInterval(() => {
+                            const scrollAmount = getScrollAmount();
+                            if (carousel.scrollLeft + carousel.clientWidth + scrollAmount >= carousel.scrollWidth) {
+                                carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                            } else {
+                                carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                            }
+                        }, 7000);
+                    };
+                    const scrollAction = (direction) => {
+                        stopAutoScroll();
+                        const amount = getScrollAmount() * direction;
+                        carousel.scrollBy({ left: amount, behavior: 'smooth' });
+                        startAutoScroll();
+                    };
+                    
+                    prevTestimonialBtn.addEventListener('click', () => scrollAction(-1));
+                    nextTestimonialBtn.addEventListener('click', () => scrollAction(1));
+                    carousel.addEventListener('mouseenter', stopAutoScroll);
+                    carousel.addEventListener('mouseleave', startAutoScroll);
+                    startAutoScroll();
+                }
+
+                // --- AI Concierge ---
+                const conciergeBtn = document.getElementById('concierge-button');
+                const conciergeSelect = document.getElementById('concierge-select');
+                const conciergeLoading = document.getElementById('concierge-loading');
+                const conciergeOutput = document.getElementById('concierge-output');
+
+                conciergeBtn?.addEventListener('click', async () => {
+                    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GOOGLE_AI_API_KEY") {
+                        conciergeOutput.textContent = "AI Concierge is not configured. An API key is required.";
+                        conciergeOutput.classList.remove('hidden');
+                        return;
+                    }
+                    const selectedValue = conciergeSelect.value;
+                    const prompt = `Please provide a short, numbered list of 3 ${selectedValue} near the North Natomas area of Sacramento, CA. Only return the numbered list.`;
+                    
+                    conciergeBtn.disabled = true;
+                    conciergeLoading.classList.remove('hidden');
+                    conciergeOutput.classList.add('hidden');
+                    
+                    try {
+                        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                        const model = genAI.getGenerativeModel({ model: "gemini-pro"});
+                        const result = await model.generateContent(prompt);
+                        const response = await result.response;
+                        const text = response.text().replace(/\*/g, ''); // Clean up markdown
+                        conciergeOutput.innerHTML = text.replace(/\n/g, '<br>');
+                        conciergeOutput.classList.remove('hidden');
+                    } catch(error) {
+                        console.error("AI Concierge Error:", error);
+                        conciergeOutput.textContent = "Sorry, we couldn't fetch recommendations at this time.";
+                        conciergeOutput.classList.remove('hidden');
+                    } finally {
+                        conciergeBtn.disabled = false;
+                        conciergeLoading.classList.add('hidden');
+                    }
+                });
             }
         });
     </script>
 </body>
 </html>
+```
