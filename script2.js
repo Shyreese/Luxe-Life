@@ -1,0 +1,391 @@
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Encapsulate all logic within DOMContentLoaded ---
+
+            // --- Firebase Initialization ---
+            try {
+                // Static Firebase configuration provided by the user. Replace the placeholder values with your actual config.
+                const firebaseConfig = {
+                    apiKey: "AIzaSy...-...",
+                    authDomain: "your-project-id.firebaseapp.com",
+                    projectId: "your-project-id",
+                    storageBucket: "your-project-id.appspot.com",
+                    messagingSenderId: "1234567890",
+                    appId: "1:12345...:web:..."
+                };
+                
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                initializeAppScripts(auth, db); // Pass auth and db objects to the main app function
+            } catch (error) {
+                console.error("Firebase Initialization Failed:", error);
+                const residentPortal = document.getElementById('residents');
+                if (residentPortal) {
+                    residentPortal.innerHTML = `
+                        <div class="container mx-auto px-6 text-center">
+                            <h2 class="font-lora text-3xl md:text-4xl font-bold">Resident Portal Temporarily Unavailable</h2>
+                            <p class="mt-4 text-lg text-white/80 max-w-2xl mx-auto">An error occurred during setup. Please check the console for details.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function initializeAppScripts(auth, db) {
+                // --- Standard UI functionality ---
+                const mobileMenuButton = document.getElementById('mobile-menu-button');
+                const mobileMenu = document.getElementById('mobile-menu');
+                mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+                document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = link.getAttribute('href');
+                        document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('main > section, footer');
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            navLinks.forEach(link => {
+                                const href = link.getAttribute('href');
+                                if (href && href.substring(1) === entry.target.id) {
+                                    link.classList.add('nav-link-active');
+                                } else {
+                                    link.classList.remove('nav-link-active');
+                                }
+                            });
+                        }
+                    });
+                }, { threshold: 0.5 });
+                sections.forEach(section => { if(section.id) observer.observe(section); });
+
+                const faders = document.querySelectorAll('.fade-in-up');
+                const faderObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+                faders.forEach(fader => faderObserver.observe(fader));
+
+                const images = [
+                    'https://i.imgur.com/L7rpcwK.jpeg',
+                    'https://i.imgur.com/ScHN21W.jpeg',
+                    'https://i.imgur.com/Cq6nPzF.jpeg',
+                    'https://i.imgur.com/JDSjv2K.jpeg',
+                    'https://i.imgur.com/x9TRwGB.jpeg',
+                    'https://i.imgur.com/wzCq4Nd.jpeg',
+                    'https://i.imgur.com/fKgiUlR.jpeg',
+                    'https://i.imgur.com/ZCtQ8Qo.jpeg',
+                    'https://i.imgur.com/1pXPZnq.jpeg',
+                    'https://i.imgur.com/el27KUB.jpeg'
+                ];
+
+                let currentImageIndex = 0;
+                const mainImage = document.getElementById('gallery-main-image');
+                const prevBtn = document.getElementById('prev-btn');
+                const nextBtn = document.getElementById('next-btn');
+                const thumbnailContainer = document.getElementById('thumbnail-container');
+                const detailsToggleBtn = document.getElementById('details-toggle-btn');
+                const propertyDetails = document.getElementById('property-details');
+                let detailsVisible = false;
+
+                function updateGallery() {
+                    if (!mainImage) return;
+                    mainImage.style.opacity = 0;
+                    setTimeout(() => {
+                        mainImage.src = images[currentImageIndex];
+                        mainImage.style.opacity = 1;
+                    }, 250);
+                    
+                    thumbnailContainer.innerHTML = ''; // Clear existing thumbnails
+                    images.forEach((src, index) => {
+                        const thumb = document.createElement('img');
+                        thumb.src = src; 
+                        thumb.alt = `Amara Retreat Photo ${index + 1}`;
+                        thumb.className = 'thumbnail w-full h-auto object-cover aspect-square rounded-md cursor-pointer border-4 border-transparent transition-all hover:opacity-80';
+                        if(index === currentImageIndex) thumb.classList.add('border-gold');
+                        thumb.addEventListener('click', () => { currentImageIndex = index; updateGallery(); });
+                        thumbnailContainer.appendChild(thumb);
+                    });
+                }
+                
+                if(prevBtn) prevBtn.addEventListener('click', () => { currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; updateGallery(); });
+                if(nextBtn) nextBtn.addEventListener('click', () => { currentImageIndex = (currentImageIndex + 1) % images.length; updateGallery(); });
+                updateGallery();
+
+                detailsToggleBtn.addEventListener('click', () => {
+                    detailsVisible = !detailsVisible;
+                    propertyDetails.style.transition = 'opacity 0.5s ease, max-height 0.5s ease';
+                    if(detailsVisible) {
+                        propertyDetails.classList.remove('hidden');
+                        detailsToggleBtn.textContent = "Hide Details";
+                         setTimeout(() => {
+                            propertyDetails.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    } else {
+                        propertyDetails.classList.add('hidden');
+                        detailsToggleBtn.textContent = "View Details & Gallery";
+                        document.getElementById('property').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+                
+                // --- Firebase Auth UI Management ---
+                const authModal = document.getElementById('auth-modal');
+                const modalContent = authModal.querySelector('.modal-content');
+                const loginModalBtn = document.getElementById('login-modal-btn');
+                const closeModalBtn = document.getElementById('close-modal-btn');
+                
+                const loginFormContainer = document.getElementById('login-form-container');
+                const signupFormContainer = document.getElementById('signup-form-container');
+                const showSignupBtn = document.getElementById('show-signup-btn');
+                const showLoginBtn = document.getElementById('show-login-btn');
+                const modalTitle = document.getElementById('modal-title');
+
+                const loggedOutView = document.getElementById('resident-portal-logged-out');
+                const loggedInView = document.getElementById('resident-portal-logged-in');
+                const residentNameSpan = document.getElementById('resident-name');
+                const logoutBtn = document.getElementById('logout-btn');
+                const authErrorDiv = document.getElementById('auth-error');
+
+                const openModal = () => {
+                    authModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        authModal.classList.remove('opacity-0');
+                        modalContent.classList.remove('opacity-0', '-translate-y-10');
+                    }, 10);
+                };
+
+                const closeModal = () => {
+                    authModal.classList.add('opacity-0');
+                    modalContent.classList.add('opacity-0', '-translate-y-10');
+                    setTimeout(() => {
+                        authModal.classList.add('hidden');
+                        authErrorDiv.classList.add('hidden');
+                    }, 300);
+                };
+
+                loginModalBtn.addEventListener('click', openModal);
+                closeModalBtn.addEventListener('click', closeModal);
+                authModal.addEventListener('click', (e) => {
+                    if (e.target === authModal) closeModal();
+                });
+
+                showSignupBtn.addEventListener('click', () => {
+                    loginFormContainer.classList.add('hidden');
+                    signupFormContainer.classList.remove('hidden');
+                    modalTitle.textContent = "Create Resident Account";
+                    authErrorDiv.classList.add('hidden');
+                });
+                showLoginBtn.addEventListener('click', () => {
+                    signupFormContainer.classList.add('hidden');
+                    loginFormContainer.classList.remove('hidden');
+                    modalTitle.textContent = "Resident Login";
+                    authErrorDiv.classList.add('hidden');
+                });
+
+                const loginForm = document.getElementById('login-form');
+                const signupForm = document.getElementById('signup-form');
+
+                signupForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const signupButton = signupForm.querySelector('button[type="submit"]');
+                    signupButton.disabled = true;
+                    signupButton.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
+                    authErrorDiv.classList.add('hidden');
+
+                    const name = document.getElementById('signup-name').value;
+                    const email = document.getElementById('signup-email').value;
+                    const password = document.getElementById('signup-password').value;
+
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        await updateProfile(userCredential.user, { displayName: name });
+                        signupForm.reset();
+                        closeModal();
+                    } catch (error) {
+                        console.error("Signup Error:", error.code, error.message);
+                        switch (error.code) {
+                            case 'auth/operation-not-allowed':
+                                authErrorDiv.textContent = 'Error: Email sign-up must be enabled in the Firebase Console.';
+                                break;
+                            case 'auth/email-already-in-use':
+                                authErrorDiv.textContent = 'This email address is already in use.';
+                                break;
+                            case 'auth/weak-password':
+                                authErrorDiv.textContent = 'Password should be at least 6 characters.';
+                                break;
+                            case 'auth/invalid-email':
+                                authErrorDiv.textContent = 'Please enter a valid email address.';
+                                break;
+                            default:
+                                authErrorDiv.textContent = 'An error occurred during sign up. Please try again.';
+                        }
+                        authErrorDiv.classList.remove('hidden');
+                    } finally {
+                        signupButton.disabled = false;
+                        signupButton.textContent = 'Sign Up';
+                    }
+                });
+
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const loginButton = loginForm.querySelector('button[type="submit"]');
+                    loginButton.disabled = true;
+                    loginButton.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
+                    authErrorDiv.classList.add('hidden');
+
+                    const email = document.getElementById('login-email').value;
+                    const password = document.getElementById('login-password').value;
+
+                    try {
+                        await signInWithEmailAndPassword(auth, email, password);
+                        loginForm.reset();
+                        closeModal();
+                    } catch (error) {
+                        console.error("Login Error:", error.code, error.message);
+                        authErrorDiv.textContent = 'Invalid email or password. Please try again.';
+                        authErrorDiv.classList.remove('hidden');
+                    } finally {
+                        loginButton.disabled = false;
+                        loginButton.textContent = 'Login';
+                    }
+                });
+
+                logoutBtn.addEventListener('click', () => {
+                    signOut(auth).catch(error => console.error("Sign out error", error));
+                });
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        loggedOutView.classList.add('hidden');
+                        loggedInView.classList.remove('hidden');
+                        residentNameSpan.textContent = user.displayName || 'Resident';
+                    } else {
+                        loggedInView.classList.add('hidden');
+                        loggedOutView.classList.remove('hidden');
+                        residentNameSpan.textContent = '';
+                    }
+                });
+
+                // Password strength indicator for sign-up form
+                const signupPasswordInput = document.getElementById('signup-password');
+                const strengthBar = document.getElementById('password-strength-bar');
+                const strengthText = document.getElementById('password-strength-text');
+
+                function evaluatePasswordStrength(password) {
+                    let strength = 0;
+                    if (password.length >= 8) strength++;
+                    if (/[A-Z]/.test(password)) strength++;
+                    if (/[0-9]/.test(password)) strength++;
+                    if (/[^A-Za-z0-9]/.test(password)) strength++;
+                    return strength;
+                }
+
+                signupPasswordInput.addEventListener('input', () => {
+                    const password = signupPasswordInput.value;
+                    const strength = evaluatePasswordStrength(password);
+                    let width;
+                    let color;
+                    let text;
+                    if (!password) {
+                        width = '0%';
+                        color = '#ef4444';
+                        text = '';
+                    } else if (strength <= 1) {
+                        width = '33%';
+                        color = '#ef4444';
+                        text = 'Weak';
+                    } else if (strength === 2) {
+                        width = '66%';
+                        color = '#f59e0b';
+                        text = 'Medium';
+                    } else {
+                        width = '100%';
+                        color = '#10b981';
+                        text = 'Strong';
+                    }
+                    strengthBar.style.width = width;
+                    strengthBar.style.backgroundColor = color;
+                    strengthText.textContent = text;
+                });
+
+                // Contact Form Logic
+                const contactForm = document.getElementById('contact-form');
+                const contactSuccess = document.getElementById('contact-success');
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const submitButton = contactForm.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = `<span class="spinner w-5 h-5 mx-auto border-2 rounded-full"></span>`;
+
+                    const inquiryData = {
+                        name: document.getElementById('name').value,
+                        email: document.getElementById('email').value,
+                        moveInDate: document.getElementById('date').value,
+                        lengthOfStay: document.getElementById('stay').value,
+                        message: document.getElementById('message').value,
+                        createdAt: serverTimestamp()
+                    };
+
+                    try {
+                        // Save contact inquiries directly to a collection named 'contactInquiries'
+                        await addDoc(collection(db, 'contactInquiries'), inquiryData);
+                        
+                        contactForm.reset();
+                        contactSuccess.classList.remove('hidden');
+                        setTimeout(() => contactSuccess.classList.add('hidden'), 5000);
+
+                    } catch (error) {
+                        console.error("Error submitting inquiry: ", error);
+                        alert("There was an error submitting your message. Please try again.");
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Send Inquiry';
+                    }
+                });
+
+                // Testimonial Carousel
+                const carousel = document.getElementById('testimonial-carousel');
+                const prevTestimonialBtn = document.getElementById('prev-testimonial');
+                const nextTestimonialBtn = document.getElementById('next-testimonial');
+                let autoScrollInterval;
+
+                const startAutoScroll = () => {
+                    autoScrollInterval = setInterval(() => {
+                        const scrollWidth = carousel.scrollWidth;
+                        const clientWidth = carousel.clientWidth;
+                        if (carousel.scrollLeft + clientWidth >= scrollWidth) {
+                            carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                        } else {
+                            carousel.scrollBy({ left: clientWidth, behavior: 'smooth' });
+                        }
+                    }, 7000);
+                };
+
+                const stopAutoScroll = () => {
+                    clearInterval(autoScrollInterval);
+                };
+
+                prevTestimonialBtn.addEventListener('click', () => {
+                    carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
+                });
+
+                nextTestimonialBtn.addEventListener('click', () => {
+                    carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
+                });
+                
+                carousel.addEventListener('mouseenter', stopAutoScroll);
+                carousel.addEventListener('mouseleave', startAutoScroll);
+
+                startAutoScroll();
+            }
+        });
