@@ -1,0 +1,148 @@
+# LuxeLife Properties
+
+Start here. AGENTS.md and CLAUDE.md are instructions for Figma Make's AI and can be ignored. The dev server does not run on its own outside Figma Make. Use the commands in section 2.
+
+## 1. What this is
+
+LuxeLife Properties offers furnished monthly rentals for 30 day stays and longer in Sacramento and Oakland. The site is inquiry based. There is no instant booking, and every stay is confirmed personally by the property manager.
+
+* One live home: The Sacramento Condo.
+* Oakland is coming soon.
+* This is a front end prototype with no backend. All data is mock data and all forms are demos.
+
+## 2. Stack and how to run
+
+* React 19 and React DOM 19
+* react router 8 (`createBrowserRouter`, routes loaded on demand)
+* Vite 8 with `@vitejs/plugin-react`
+* Tailwind CSS v4 through `@tailwindcss/vite` (no Tailwind config file, theme tokens live in `src/index.css`)
+* TypeScript 5.7
+* Figtree font, self hosted as woff2 in `src/fonts`
+* Package manager: pnpm 10. Node 22. Versions are pinned in `.mise.toml`.
+* Formatting: oxfmt
+
+Commands:
+
+```
+pnpm install        # install dependencies
+pnpm dev            # start the dev server (port 3000 unless PORT is set, default 8443 in config)
+pnpm build          # production build into dist
+pnpm preview        # serve the built site locally
+npx tsc --noEmit    # type check
+```
+
+## 3. Routes
+
+Routes are defined in `src/router.tsx`. Only Home is bundled up front. Every other page is a separate chunk.
+
+| Route | File | Access |
+| --- | --- | --- |
+| `/` | `src/pages/Home.tsx` | Public |
+| `/sacramento-condo` | `src/pages/Product.tsx` | Public |
+| `/partnership` | `src/pages/Partnership.tsx` | Public |
+| `/inquiry` | `src/pages/Inquiry.tsx` | Public (noindex) |
+| `/inquiry-received` | `src/pages/InquiryReceived.tsx` | Public (noindex, shown after an inquiry) |
+| `/sign-in` | `src/pages/SignIn.tsx` | Public (noindex) |
+| `/confirmed` | `src/pages/Confirmed.tsx` | Resident only (noindex) |
+| `/walkthrough` | `src/pages/Walkthrough.tsx` | Resident only (noindex) |
+| `/resident-hub` | `src/pages/ResidentHub.tsx` | Resident only (noindex) |
+| `*` | `src/pages/NotFound.tsx` | Public (noindex) |
+
+Today nothing enforces the resident only routes. See section 6.
+
+## 4. File map
+
+| What | Where |
+| --- | --- |
+| Pages | `src/pages` |
+| Router and root layout | `src/router.tsx` |
+| Shared components (TopNav, Footer, AccentBar, HeroPattern, PropertyGallery) | `src/components` |
+| Icons | `src/components/icons.tsx` |
+| Mock data, pricing, access codes, sign in rules, helpers | `src/data/mockData.ts` |
+| Images imported by code (WebP, a few PNG icons, logo) | `src/assets` and `src/imports` |
+| Fonts | `src/fonts` |
+| Global CSS, theme tokens, font faces | `src/index.css` |
+| Favicons, sitemap, demo PDFs | `public` (PDFs are in `public/documents`) |
+| Site title, description, robots flag | `.figma/make/site.json` |
+| Document shell | `index.html` |
+
+## 5. Design rules to keep
+
+**Layout**
+
+* Mobile first. Check every change at 390px, 768px, and 1440px.
+
+**Copy**
+
+* Sentence case everywhere.
+* No hyphens or dashes in visible copy.
+* No ampersands. Write "and".
+* No middle dots.
+* No all caps labels.
+* One h1 per page.
+
+**Color and interaction**
+
+* Use the tokens in `src/index.css` under `@theme`: terracotta, terracotta deep, terracotta dark, terracotta light, terracotta soft, cream, tan, sage, bronze, ink, body, muted, muted strong, navy, card.
+* Use the shared `AccentBar` component above section headings. Do not rebuild it.
+* Keep the global focus styles in `src/index.css`. Do not remove outlines.
+* Every tap target is at least 44px tall.
+* Keep contrast at WCAG AA or better when you add colors.
+
+**Photos**
+
+* Never use stock photos of people and present them as real staff or residents. Use real photos or initials avatars.
+
+## 6. Demo logic to replace (must do before launch)
+
+* [ ] Delete the demo sign in rules (`SIGN_IN_RULES` in `src/data/mockData.ts`: code 123456, expired code 000000, emails containing "test"). Use Supabase email OTP with no public sign up.
+* [ ] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
+* [ ] Move access codes and the wifi password (`ACCESS` in `mockData.ts`) to a table with row level security. Show them only to a signed in resident with an active stay.
+* [ ] Move lease and receipt PDFs out of `public/documents` into a private Storage bucket. Serve them with signed URLs.
+* [ ] Save the Inquiry, Partnership, and Early access forms to tables. Generate Request IDs on the server (`generateRequestId` and `DEMO_REQUEST_ID` in `mockData.ts` are demo only).
+* [ ] Email Amy on every new inquiry. Send a confirmation email to the guest.
+* [ ] Add spam protection: Turnstile or similar, a honeypot field, and a rate limit.
+* [ ] Save walkthrough progress per resident.
+* [ ] Replace the rest of the mock data (`RESIDENT`, `STAY`, `INQUIRY_SUMMARY`, `CONFIRMED_STAY`) with real records.
+
+## 7. Launch checklist
+
+* [ ] Set `robots.index` to true in `.figma/make/site.json`, and remove the "Flip to index at launch" comment in `index.html`. Also remove the page level `noindex` meta tags from the pages that should be indexed.
+* [ ] Replace `https://example.com` in `public/sitemap.xml` with the real domain. Add `/inquiry` back to the sitemap if you want it indexed, and remove its noindex tag at the same time.
+* [ ] Use absolute `og:image` URLs. Home, Product, and Partnership build them from `window.location.origin`, which crawlers that skip JavaScript cannot see.
+* [ ] Add prerendering so crawlers see titles, meta tags, and structured data.
+* [ ] Build the About, Contact, Privacy, and Terms pages. The footer links currently point to `#`. Privacy and Terms need legal review.
+* [ ] Run `npx tsc --noEmit` and `pnpm build`, then check every route on mobile.
+
+## 8. Real data still needed from the owner
+
+* [ ] Phone number
+* [ ] Manager email
+* [ ] Condo street address (the site shows only North Natomas)
+* [ ] Oakland address
+* [ ] Deposit and cleaning fees
+* [ ] Max guests
+* [ ] Amy's real photo (set `PROPERTY_MANAGER_PHOTO` in `src/data/mockData.ts`)
+* [ ] Whether partners need a contract or a minimum volume
+* [ ] Review count, and confirmation that the reviews are real and may be shown
+* [ ] Sources for the competitor price comparison
+* [ ] Square footage and distances
+* [ ] The nearby places list
+
+## 9. Nice to have later
+
+* [ ] Extract the shared scrollspy, pill nav, carousel, and early access form into components. They are copied across pages today.
+* [ ] Replace the remaining hex literals with tokens.
+* [ ] Move the scoped `<style>` tags in Confirmed, InquiryReceived, ResidentHub, and Walkthrough into `src/index.css`.
+
+## 10. Contacts
+
+* Armon, UX designer: design questions.
+
+* Amy Flatt, property manager: property details, access, and guest questions.
+
+* Shyreese Tyiska, property owner: pricing, partnerships, and business decisions.
+
+Live preview: https://cling-from-01145145.figma.site
+
+Figma Make file: https://www.figma.com/make/JaXk7TBbwEtjPnRCveW24o/Lux-Life-Launch-Build

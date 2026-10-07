@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/figtree-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./fonts/figtree-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./fonts/figtree-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Figtree";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./fonts/figtree-latin-700-normal.woff2") format("woff2");
+}
+
+@theme {
+  --color-terracotta: #986c5d;
+  --color-terracotta-deep: #876053;
+  --color-terracotta-dark: #6e4e43;
+  --color-terracotta-light: #c9a595;
+  --color-terracotta-soft: #9c6a53;
+  --color-cream: #f3e8da;
+  --color-tan: #d8c8b8;
+  --color-sage: #94b3aa;
+  --color-bronze: #b08d57;
+  --color-ink: #171717;
+  --color-body: #525252;
+  --color-muted: #737373;
+  --color-muted-strong: #696969;
+  --color-muted-tan: #555555;
+  --color-navy: #0b2442;
+  --color-card: #ffffff;
+  --color-star: #ffd700;
+
+  /* One family across the entire site: Figtree */
+  --font-display: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Figtree", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Hero H1: 1px black stroke painted outside the white fill */
+.hero-stroke {
+  -webkit-text-stroke: 1px #000000;
+  paint-order: stroke fill;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: #ffffff;
+}
+
+@layer base {
+  :where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  [tabindex="-1"]:focus {
+    outline: none;
+  }
+  /* Ink outlines vanish on dark surfaces, so those use white. */
+  [data-focus-light] :focus-visible,
+  [data-focus-light]:focus-visible {
+    outline-color: #ffffff;
+  }
+  /* Controls floating over photos: white outline plus a soft dark halo so it shows on any image. */
+  [data-focus-photo]:focus-visible {
+    outline-color: #ffffff;
+    box-shadow: 0 0 8px 3px rgba(0, 0, 0, 0.5);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* offset for the sticky top navigation when jumping to anchors */
+  scroll-padding-top: 96px;
+}
+
+/* Hide scrollbar on the horizontally scrollable mobile pill row */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Extends the hit area to 44px without changing the visual size. */
+.tap-44 {
+  position: relative;
+}
+.tap-44::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
