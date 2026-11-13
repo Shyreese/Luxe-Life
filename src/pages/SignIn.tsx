@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import TopNav from "../components/TopNav";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import Footer from "../components/Footer";
-import { PHONE, SIGN_IN_RULES } from "../data/mockData";
+import { PHONE } from "../data/mockData";
+import { supabase } from "../utils/supabase";
 
 type Step = "email" | "code" | "success";
-type EmailError = "required" | "invalid" | "not_found" | null;
-type CodeError = "wrong" | "expired" | null;
+type EmailError = "required" | "invalid" | "send_failed" | null;
+type CodeError = "invalid" | "send_failed" | null;
 
 function Spinner() {
   return (
@@ -42,8 +43,10 @@ export default function SignIn() {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [codeError, setCodeError] = useState<CodeError>(null);
   const [codeLoading, setCodeLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // Focus first code box when step changes to code
@@ -59,7 +62,7 @@ export default function SignIn() {
     return null;
   }
 
-  function handleSendCode(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     const err = validateEmail(email);
     if (err) {
@@ -68,17 +71,22 @@ export default function SignIn() {
     }
     setEmailError(null);
     setEmailLoading(true);
-    // Demo rule: see SIGN_IN_RULES in src/data/mockData.ts
-    setTimeout(() => {
-      setEmailLoading(false);
-      if (!email.toLowerCase().includes(SIGN_IN_RULES.knownEmailContains)) {
-        setEmailError("not_found");
-      } else {
-        setStep("code");
-        setDigits(["", "", "", "", "", ""]);
-        setCodeError(null);
+    try {
+      const { error } = await supabase.functions.invoke("request-inquiry-otp", {
+        body: { email: email.trim().toLowerCase() },
+      });
+      if (error) {
+        setEmailError("send_failed");
+        return;
       }
-    }, 900);
+      setStep("code");
+      setDigits(["", "", "", "", "", ""]);
+      setCodeError(null);
+    } catch {
+      setEmailError("send_failed");
+    } finally {
+      setEmailLoading(false);
+    }
   }
 
   function handleDigitChange(index: number, value: string) {
@@ -113,33 +121,56 @@ export default function SignIn() {
     }
   }
 
-  function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     const code = digits.join("");
     if (code.length < 6) return;
     setCodeLoading(true);
-    setTimeout(() => {
-      setCodeLoading(false);
-      if (code === SIGN_IN_RULES.validCode) {
-        setStep("success");
-        const dest = email.trim().toLowerCase() === SIGN_IN_RULES.newResidentEmail ? "/confirmed" : "/resident-hub";
-        setTimeout(() => {
-          navigate(dest);
-        }, 800);
-      } else if (code === SIGN_IN_RULES.expiredCode) {
-        setCodeError("expired");
-      } else {
-        setCodeError("wrong");
+    setCodeError(null);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: code,
+        type: "email",
+      });
+      if (error) {
+        setCodeError("invalid");
         setDigits(["", "", "", "", "", ""]);
         setTimeout(() => inputRefs.current[0]?.focus(), 0);
+        return;
       }
-    }, 900);
+      setStep("success");
+      const from = (location.state as { from?: unknown } | null)?.from;
+      const destination =
+        typeof from === "string" && from.startsWith("/") && !from.startsWith("//")
+          ? from
+          : "/resident-hub";
+      setTimeout(() => navigate(destination, { replace: true }), 800);
+    } catch {
+      setCodeError("invalid");
+    } finally {
+      setCodeLoading(false);
+    }
   }
 
-  function handleResend() {
+  async function handleResend() {
     setDigits(["", "", "", "", "", ""]);
     setCodeError(null);
-    setTimeout(() => inputRefs.current[0]?.focus(), 0);
+    setResendLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("request-inquiry-otp", {
+        body: { email: email.trim().toLowerCase() },
+      });
+      if (error) {
+        setCodeError("send_failed");
+        return;
+      }
+      inputRefs.current[0]?.focus();
+    } catch {
+      setCodeError("send_failed");
+    } finally {
+      setResendLoading(false);
+    }
   }
 
   function handleUseDifferentEmail() {
@@ -178,7 +209,7 @@ export default function SignIn() {
                 Sign in to your resident portal
               </h1>
               <p className="mt-3 text-[15px] leading-relaxed text-body">
-                Enter the email you used on your inquiry. We will send you a 6 digit code.
+                Enter the email you used on your inquiry. If it matches an inquiry, we will send you a 6 digit code.
               </p>
 
               <form onSubmit={handleSendCode} className="mt-7" noValidate>
@@ -200,10 +231,8 @@ export default function SignIn() {
                       setEmailError(null);
                     }}
                     aria-describedby={emailError ? "si-email-error" : undefined}
-                    aria-invalid={emailError && emailError !== "not_found" ? true : undefined}
-                    className={
-                      emailError && emailError !== "not_found" ? inputError : inputNormal
-                    }
+                    aria-invalid={emailError === "required" || emailError === "invalid" ? true : undefined}
+                    className={emailError === "required" || emailError === "invalid" ? inputError : inputNormal}
                   />
 
                   {emailError === "required" && (
@@ -216,26 +245,11 @@ export default function SignIn() {
                       Please enter a valid email.
                     </p>
                   )}
-                  {emailError === "not_found" && (
-                    <div id="si-email-error" role="alert" className="mt-3 rounded-xl border border-tan bg-cream p-4">
-                      <p className="text-[14px] text-ink">
-                        We could not find a resident with this email.
-                      </p>
-                      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                        <a
-                          href="/inquiry"
-                          className="flex min-h-[44px] items-center justify-center rounded-full bg-sage px-5 py-2.5 text-[14px] font-semibold text-ink transition-opacity hover:opacity-90"
-                        >
-                          Send an inquiry
-                        </a>
-                        <a
-                          href={PHONE.tel}
-                          className="flex min-h-[44px] items-center justify-center rounded-full border border-tan bg-white px-5 py-2.5 text-[14px] font-semibold text-ink transition-colors hover:bg-cream"
-                        >
-                          Contact your host
-                        </a>
-                      </div>
-                    </div>
+                  {emailError === "send_failed" && (
+                    <p id="si-email-error" role="alert" className="mt-2 text-[13px] text-red-600">
+                      We could not send a code. Please try again or contact your host at{" "}
+                      <a className="underline" href={PHONE.tel}>{PHONE.display}</a>.
+                    </p>
                   )}
                 </div>
 
@@ -273,8 +287,7 @@ export default function SignIn() {
                 Check your email
               </h1>
               <p className="mt-3 text-[15px] leading-relaxed text-body">
-                We sent a code to{" "}
-                <span className="font-medium text-ink">{email}</span>. It expires in 10 minutes.
+                If <span className="font-medium text-ink">{email}</span> matches an inquiry, a code is on its way. Enter it below.
               </p>
 
               <form onSubmit={handleSignIn} className="mt-7" noValidate>
@@ -314,14 +327,14 @@ export default function SignIn() {
                     ))}
                   </div>
 
-                  {codeError === "wrong" && (
+                  {codeError === "invalid" && (
                     <p role="alert" className="mt-2 text-[13px] text-red-600">
-                      That code did not match. Try again.
+                      That code is invalid or expired. Request a new code and try again.
                     </p>
                   )}
-                  {codeError === "expired" && (
+                  {codeError === "send_failed" && (
                     <p role="alert" className="mt-2 text-[13px] text-red-600">
-                      This code expired. Tap Resend code.
+                      We could not send a new code. Please try again.
                     </p>
                   )}
                 </div>
@@ -340,9 +353,10 @@ export default function SignIn() {
                 <button
                   type="button"
                   onClick={handleResend}
-                  className="min-h-[44px] font-medium text-ink underline underline-offset-2 hover:opacity-80"
+                  disabled={resendLoading || codeLoading}
+                  className="min-h-[44px] font-medium text-ink underline underline-offset-2 hover:opacity-80 disabled:opacity-60"
                 >
-                  Resend code
+                  {resendLoading ? "Sending code" : "Resend code"}
                 </button>
                 <button
                   type="button"
@@ -376,7 +390,7 @@ export default function SignIn() {
               <h1 className="mt-4 text-[1.5rem] font-bold text-ink">
                 Signing you in
               </h1>
-              <p className="mt-2 text-[15px] text-body">Taking you to your Resident Hub now.</p>
+              <p className="mt-2 text-[15px] text-body">Opening your resident page now.</p>
             </div>
           )}
 

@@ -1,6 +1,7 @@
-import { useEffect, useRef, type ComponentType } from "react";
-import { createBrowserRouter, Outlet, useLocation, useNavigate } from "react-router";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import { createBrowserRouter, Navigate, Outlet, useLocation, useNavigate } from "react-router";
 import Home from "./pages/Home";
+import { supabase } from "./utils/supabase";
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -20,6 +21,67 @@ function focusMain() {
   if (!main) return;
   main.focus({ preventScroll: true });
   main.scrollIntoView({ behavior: "auto" });
+}
+
+function RequireSession() {
+  const location = useLocation();
+  const [status, setStatus] = useState<"loading" | "signed-in" | "signed-out" | "error">("loading");
+
+  useEffect(() => {
+    let active = true;
+    let receivedAuthEvent = false;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      receivedAuthEvent = true;
+      if (active) setStatus(session ? "signed-in" : "signed-out");
+    });
+
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!active || receivedAuthEvent) return;
+        setStatus(error ? "error" : data.session ? "signed-in" : "signed-out");
+      })
+      .catch(() => {
+        if (active && !receivedAuthEvent) setStatus("error");
+      });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream">
+        <p className="text-[15px] text-body">Checking your session...</p>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream px-5">
+        <p role="alert" className="max-w-md text-center text-[15px] text-body">
+          We could not verify your sign-in status. Please refresh the page and try again.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "signed-out") {
+    return (
+      <Navigate
+        to="/sign-in"
+        replace
+        state={{ from: location.pathname + location.search + location.hash }}
+      />
+    );
+  }
+
+  return <Outlet />;
 }
 
 // Root layout. Rather than rewrite every anchor across the pages, a single
@@ -134,10 +196,15 @@ export const router = createBrowserRouter([
       { path: "partnership", lazy: () => lazyPage(() => import("./pages/Partnership")) },
       { path: "inquiry", lazy: () => lazyPage(() => import("./pages/Inquiry")) },
       { path: "inquiry-received", lazy: () => lazyPage(() => import("./pages/InquiryReceived")) },
-      { path: "confirmed", lazy: () => lazyPage(() => import("./pages/Confirmed")) },
-      { path: "walkthrough", lazy: () => lazyPage(() => import("./pages/Walkthrough")) },
-      { path: "resident-hub", lazy: () => lazyPage(() => import("./pages/ResidentHub")) },
       { path: "sign-in", lazy: () => lazyPage(() => import("./pages/SignIn")) },
+      {
+        Component: RequireSession,
+        children: [
+          { path: "confirmed", lazy: () => lazyPage(() => import("./pages/Confirmed")) },
+          { path: "walkthrough", lazy: () => lazyPage(() => import("./pages/Walkthrough")) },
+          { path: "resident-hub", lazy: () => lazyPage(() => import("./pages/ResidentHub")) },
+        ],
+      },
       { path: "*", lazy: () => lazyPage(() => import("./pages/NotFound")) },
     ],
   },

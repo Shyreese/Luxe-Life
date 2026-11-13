@@ -125,13 +125,6 @@ export const CONFIRMED_STAY = [
   { label: "Length of stay", value: STAY.lengthLabel },
 ];
 
-export const SIGN_IN_RULES = {
-  validCode: "123456",
-  expiredCode: "000000",
-  knownEmailContains: "test",
-  newResidentEmail: "new@test.com",
-};
-
 export const NEARBY = [
   { name: "Maestro Coffee House", type: "Coffee shop", address: "2069 Arena Blvd", category: "Coffee" },
   { name: "68th Street Cafe", type: "Vietnamese cafe", address: "4261 Truxel Rd", category: "Coffee" },

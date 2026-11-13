@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { formatIsoDate, generateRequestId, PRICING, PRICING_NOTES } from "../data/mockData";
+import { formatIsoDate, PRICING, PRICING_NOTES } from "../data/mockData";
 import { CheckBullet } from "../components/icons";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
 import inquiryHero from "../assets/inquiry-hero.webp";
 import AccentBar from "../components/AccentBar";
+import { supabase } from "../utils/supabase"; 
 
 /* ---------- small shared bits ---------- */
 
@@ -169,22 +170,43 @@ export default function Inquiry() {
       {/* Form section */}
       <section className="bg-tan">
         <form
-          onSubmit={(e) => {
-            // Native validation runs first; on a valid submit continue to the
-            // received confirmation page.
-            e.preventDefault();
-            const data = new FormData(e.currentTarget);
-            navigate("/inquiry-received", {
-              state: {
-                requestId: generateRequestId(),
-                stayFor: bookingFor === "self" ? "Yourself" : "Someone else",
-                moveIn: formatIsoDate(String(data.get("moveIn") ?? "")),
-                length: String(data.get("length") ?? ""),
-              },
-            });
-          }}
-          className="mx-auto grid max-w-[1280px] gap-x-16 gap-y-10 px-5 py-16 md:grid-cols-[minmax(0,1fr)_380px] md:grid-rows-[auto_auto] md:px-10 md:py-20"
-        >
+    onSubmit={async (e) => {
+      e.preventDefault();
+      const data = new FormData(e.currentTarget);
+      
+      const payload = {
+        booking_for: bookingFor,
+        full_name: String(data.get("fullName") ?? ""),
+        email: String(data.get("email") ?? "").trim().toLowerCase(),
+        phone: String(data.get("phone") ?? ""),
+        move_in: String(data.get("moveIn") ?? ""),
+        length: String(data.get("length") ?? ""),
+        guest_name: forSomeone ? String(data.get("guestName") ?? "") : null,
+        guest_email: forSomeone ? String(data.get("guestEmail") ?? "").trim().toLowerCase() : null,
+        guest_phone: forSomeone ? String(data.get("guestPhone") ?? "") : null,
+        guest_org: forSomeone ? String(data.get("guestOrg") ?? "") : null,
+        message: String(data.get("message") ?? ""),
+      };
+
+      // Insert data securely into Supabase
+      const { error } = await supabase.from("inquiries").insert([payload]);
+
+      if (error) {
+        alert("Failed to submit inquiry: " + error.message);
+        return;
+      }
+
+      // Continue to the confirmation page with the server-generated ID
+      navigate("/inquiry-received", {
+        state: {
+          stayFor: bookingFor === "self" ? "Yourself" : "Someone else",
+          moveIn: formatIsoDate(String(data.get("moveIn") ?? "")),
+          length: String(data.get("length") ?? ""),
+        },
+      });
+    }}
+    className="mx-auto grid max-w-[1280px] gap-x-16 gap-y-10 px-5 py-16 md:grid-cols-[minmax(0,1fr)_380px] md:grid-rows-[auto_auto] md:px-10 md:py-20"
+  >
           {/* Left column: details + fields + message */}
           <div className="md:col-start-1 md:row-start-1">
             <AccentBar />

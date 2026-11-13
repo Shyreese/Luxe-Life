@@ -2,7 +2,7 @@ import { useLocation } from "react-router";
 import { CheckBullet } from "../components/icons";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
-import { DEMO_REQUEST_ID, INQUIRY_SUMMARY, PRICING, PRICING_NOTES, MANAGER } from "../data/mockData";
+import { INQUIRY_SUMMARY, PRICING, PRICING_NOTES, MANAGER } from "../data/mockData";
 import requestIcon from "../assets/ir-request-icon.png";
 import summaryLivingRoom from "../imports/_M0A6154.webp";
 import primaryBedroom from "../imports/_M0A6104.webp";
@@ -19,7 +19,6 @@ type SubmittedInquiry = { requestId?: string; stayFor?: string; moveIn?: string;
 
 export default function InquiryReceived() {
   const submitted = (useLocation().state ?? {}) as SubmittedInquiry;
-  const requestId = submitted.requestId || DEMO_REQUEST_ID;
   const summary = {
     property: INQUIRY_SUMMARY.property,
     stayFor: submitted.stayFor || INQUIRY_SUMMARY.stayFor,
@@ -63,7 +62,9 @@ export default function InquiryReceived() {
             <h1 className="mt-3 max-w-2xl text-[40px] font-bold leading-[1.08] tracking-[-1px] text-ink md:text-[52px]">
               We have received your inquiry for The Sacramento Condo
             </h1>
-            <p className="mt-4 text-[15px] text-muted-tan">Request ID {requestId}</p>
+            {submitted.requestId && (
+              <p className="mt-4 text-[15px] text-muted-tan">Request ID {submitted.requestId}</p>
+            )}
             <p className="mt-5 max-w-md text-[17px] leading-relaxed text-[#525252]">
               {MANAGER.firstName} typically replies within a day. We will send a confirmation to your email.
             </p>

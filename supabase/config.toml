@@ -1,0 +1,2 @@
+[functions.request-inquiry-otp]
+verify_jwt = false

@@ -8,7 +8,7 @@ LuxeLife Properties offers furnished monthly rentals for 30 day stays and longer
 
 * One live home: The Sacramento Condo.
 * Oakland is coming soon.
-* This is a front end prototype with no backend. All data is mock data and all forms are demos.
+* Supabase is connected for resident email OTP sign in and inquiry submission. Other resident data and forms are still mock data or demos.
 
 ## 2. Stack and how to run
 
@@ -48,7 +48,7 @@ Routes are defined in `src/router.tsx`. Only Home is bundled up front. Every oth
 | `/resident-hub` | `src/pages/ResidentHub.tsx` | Resident only (noindex) |
 | `*` | `src/pages/NotFound.tsx` | Public (noindex) |
 
-Today nothing enforces the resident only routes. See section 6.
+The resident routes require an active Supabase session. Sensitive data still needs database row level security as described in section 6.
 
 ## 4. File map
 
@@ -58,7 +58,7 @@ Today nothing enforces the resident only routes. See section 6.
 | Router and root layout | `src/router.tsx` |
 | Shared components (TopNav, Footer, AccentBar, HeroPattern, PropertyGallery) | `src/components` |
 | Icons | `src/components/icons.tsx` |
-| Mock data, pricing, access codes, sign in rules, helpers | `src/data/mockData.ts` |
+| Mock data, pricing, access codes, helpers | `src/data/mockData.ts` |
 | Images imported by code (WebP, a few PNG icons, logo) | `src/assets` and `src/imports` |
 | Fonts | `src/fonts` |
 | Global CSS, theme tokens, font faces | `src/index.css` |
@@ -95,8 +95,20 @@ Today nothing enforces the resident only routes. See section 6.
 
 ## 6. Demo logic to replace (must do before launch)
 
-* [ ] Delete the demo sign in rules (`SIGN_IN_RULES` in `src/data/mockData.ts`: code 123456, expired code 000000, emails containing "test"). Use Supabase email OTP with no public sign up.
-* [ ] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
+* [x] Remove the demo sign in rules and use Supabase email OTP without creating users from the sign in flow.
+* [ ] Enable RLS on `public.inquiries` and allow anonymous inserts only. The inquiry form intentionally does not request inserted rows back, so do not add an anonymous SELECT policy:
+
+```sql
+alter table public.inquiries enable row level security;
+grant insert (booking_for, full_name, email, phone, move_in, length, guest_name, guest_email, guest_phone, guest_org, message)
+  on table public.inquiries to anon;
+drop policy if exists "public can submit inquiries" on public.inquiries;
+create policy "public can submit inquiries"
+  on public.inquiries for insert to anon with check (true);
+```
+
+* [ ] In Supabase Auth settings, disable public user sign up, configure custom SMTP for delivery to real guest email addresses, and use `{{ .Token }}` in the email template for six digit codes. Inquiry sign in is provisioned by the private `request-inquiry-otp` Edge Function; deploy it with `supabase functions deploy request-inquiry-otp`.
+* [x] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
 * [ ] Move access codes and the wifi password (`ACCESS` in `mockData.ts`) to a table with row level security. Show them only to a signed in resident with an active stay.
 * [ ] Move lease and receipt PDFs out of `public/documents` into a private Storage bucket. Serve them with signed URLs.
 * [ ] Save the Inquiry, Partnership, and Early access forms to tables. Generate Request IDs on the server (`generateRequestId` and `DEMO_REQUEST_ID` in `mockData.ts` are demo only).
