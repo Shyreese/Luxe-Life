@@ -74,10 +74,52 @@ function RequireSession() {
   if (status === "signed-out") {
     return (
       <Navigate
-        to="/sign-in"
+        to={location.pathname.startsWith("/admin") ? "/admin/sign-in" : "/sign-in"}
         replace
         state={{ from: location.pathname + location.search + location.hash }}
       />
+    );
+  }
+
+  return <Outlet />;
+}
+
+function RequireResidentAdmin() {
+  const [status, setStatus] = useState<"loading" | "allowed" | "denied" | "error">("loading");
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc("is_resident_admin");
+        if (active) setStatus(error ? "error" : data ? "allowed" : "denied");
+      } catch {
+        if (active) setStatus("error");
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream">
+        <p className="text-[15px] text-body">Checking administrator access...</p>
+      </div>
+    );
+  }
+
+  if (status !== "allowed") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-cream px-5">
+        <p role="alert" className="max-w-md text-center text-[15px] text-body">
+          {status === "denied"
+            ? "This account is not authorized to manage resident records."
+            : "We could not verify administrator access. Please refresh the page and try again."}
+        </p>
+      </div>
     );
   }
 
@@ -197,9 +239,14 @@ export const router = createBrowserRouter([
       { path: "inquiry", lazy: () => lazyPage(() => import("./pages/Inquiry")) },
       { path: "inquiry-received", lazy: () => lazyPage(() => import("./pages/InquiryReceived")) },
       { path: "sign-in", lazy: () => lazyPage(() => import("./pages/SignIn")) },
+      { path: "admin/sign-in", lazy: () => lazyPage(() => import("./pages/AdminSignIn")) },
       {
         Component: RequireSession,
         children: [
+          {
+            Component: RequireResidentAdmin,
+            children: [{ path: "admin", lazy: () => lazyPage(() => import("./pages/Admin")) }],
+          },
           { path: "confirmed", lazy: () => lazyPage(() => import("./pages/Confirmed")) },
           { path: "walkthrough", lazy: () => lazyPage(() => import("./pages/Walkthrough")) },
           { path: "resident-hub", lazy: () => lazyPage(() => import("./pages/ResidentHub")) },

@@ -17,11 +17,11 @@ const ACCOUNT_ITEMS = [
   { label: `Message ${MANAGER.firstName}`, href: MANAGER_MAILTO },
 ];
 
-function AccountHeader() {
+function AccountHeader({ accountName, accountProperty }: { accountName: string; accountProperty: string }) {
   return (
     <div className="px-4 pb-2.5 pt-2">
-      <p className="text-[14px] font-semibold text-ink">{RESIDENT.fullName}</p>
-      <p className="mt-0.5 text-[12px] text-muted">{PROPERTY_NAME}</p>
+      <p className="text-[14px] font-semibold text-ink">{accountName}</p>
+      {accountProperty && <p className="mt-0.5 text-[12px] text-muted">{accountProperty}</p>}
     </div>
   );
 }
@@ -50,7 +50,26 @@ function AccountItems({ onNavigate, className }: { onNavigate: () => void; class
 
 // Signed in account button with a dropdown card. Closes on outside click,
 // Escape (focus returns to the button), or when focus leaves the menu.
-function AccountMenu({ idSuffix }: { idSuffix: string }) {
+function AccountMenu({
+  idSuffix,
+  accountName,
+  accountProperty,
+}: {
+  idSuffix: string;
+  accountName?: string;
+  accountProperty?: string;
+}) {
+  const displayName = accountName?.trim() || RESIDENT.fullName;
+  const firstName = displayName.split(/\s+/)[0] || RESIDENT.firstName;
+  const initials =
+    displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || RESIDENT.initials;
+  const displayProperty = accountProperty === undefined ? PROPERTY_NAME : accountProperty;
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -90,7 +109,7 @@ function AccountMenu({ idSuffix }: { idSuffix: string }) {
         type="button"
         aria-expanded={menuOpen}
         aria-controls={menuId}
-        aria-label={`Account menu for ${RESIDENT.fullName}`}
+        aria-label={`Account menu for ${displayName}`}
         onClick={() => setMenuOpen((v) => !v)}
         className="tap-44 flex items-center gap-2 rounded-full"
       >
@@ -98,9 +117,9 @@ function AccountMenu({ idSuffix }: { idSuffix: string }) {
           aria-hidden="true"
           className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-terracotta text-[12px] font-semibold text-white"
         >
-          {RESIDENT.initials}
+          {initials}
         </span>
-        <span className="hidden text-[15px] text-ink/85 md:inline">{RESIDENT.firstName}</span>
+        <span className="hidden text-[15px] text-ink/85 md:inline">{firstName}</span>
         <svg
           viewBox="0 0 12 12"
           className={`hidden h-3 w-3 text-ink/70 transition-transform md:block ${menuOpen ? "rotate-180" : ""}`}
@@ -113,7 +132,7 @@ function AccountMenu({ idSuffix }: { idSuffix: string }) {
       {menuOpen && (
         <div id={menuId} className="absolute right-0 top-full z-50 pt-2">
           <div className="w-60 rounded-2xl border border-black/5 bg-white py-2 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
-            <AccountHeader />
+            <AccountHeader accountName={displayName} accountProperty={displayProperty} />
             <hr className="mb-1.5 border-0 border-t border-black/10" />
             <AccountItems
               onNavigate={() => setMenuOpen(false)}
@@ -132,9 +151,13 @@ function AccountMenu({ idSuffix }: { idSuffix: string }) {
 export default function TopNav({
   active = "Home",
   signedIn = false,
+  accountName,
+  accountProperty,
 }: {
   active?: string;
   signedIn?: boolean;
+  accountName?: string;
+  accountProperty?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [propsOpen, setPropsOpen] = useState(false); // desktop hover panel
@@ -350,7 +373,13 @@ export default function TopNav({
               </a>
             )
           )}
-          {signedIn && <AccountMenu idSuffix="desktop" />}
+          {signedIn && (
+            <AccountMenu
+              idSuffix="desktop"
+              accountName={accountName}
+              accountProperty={accountProperty}
+            />
+          )}
           <a href={PHONE.tel} className="tap-44 text-[15px] font-semibold text-ink">
             {PHONE.display}
           </a>
@@ -358,7 +387,13 @@ export default function TopNav({
 
         {/* Mobile account button and hamburger */}
         <div className="flex items-center gap-1 md:hidden">
-          {signedIn && <AccountMenu idSuffix="mobile" />}
+          {signedIn && (
+            <AccountMenu
+              idSuffix="mobile"
+              accountName={accountName}
+              accountProperty={accountProperty}
+            />
+          )}
           <button
             ref={toggleRef}
             type="button"
@@ -459,7 +494,10 @@ export default function TopNav({
             )}
             {signedIn && (
               <div className="mt-2 border-t border-black/10 pt-3">
-                <AccountHeader />
+                <AccountHeader
+                  accountName={accountName?.trim() || RESIDENT.fullName}
+                  accountProperty={accountProperty === undefined ? PROPERTY_NAME : accountProperty}
+                />
                 <AccountItems
                   onNavigate={() => setOpen(false)}
                   className="flex min-h-[44px] items-center rounded-full px-4 text-lg text-ink"

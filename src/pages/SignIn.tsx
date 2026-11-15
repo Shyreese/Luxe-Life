@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import TopNav from "../components/TopNav";
 import { useLocation, useNavigate } from "react-router";
+import { Link } from "react-router";
 import Footer from "../components/Footer";
 import { PHONE } from "../data/mockData";
 import { supabase } from "../utils/supabase";
@@ -276,6 +277,15 @@ export default function SignIn() {
                 <a href="/#homes" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">
                   See available homes
                 </a>
+              </p>
+              <p className="mt-5 border-t border-tan pt-4 text-center text-[13px] text-muted-strong">
+                Administrator?{" "}
+                <Link
+                  to="/admin/sign-in"
+                  className="font-medium text-ink underline underline-offset-2 hover:opacity-80"
+                >
+                  Sign in here
+                </Link>
               </p>
             </div>
           )}

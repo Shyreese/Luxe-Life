@@ -43,6 +43,8 @@ Routes are defined in `src/router.tsx`. Only Home is bundled up front. Every oth
 | `/inquiry` | `src/pages/Inquiry.tsx` | Public (noindex) |
 | `/inquiry-received` | `src/pages/InquiryReceived.tsx` | Public (noindex, shown after an inquiry) |
 | `/sign-in` | `src/pages/SignIn.tsx` | Public (noindex) |
+| `/admin/sign-in` | `src/pages/AdminSignIn.tsx` | Public (noindex, administrator OTP only) |
+| `/admin` | `src/pages/Admin.tsx` | Resident administrator only |
 | `/confirmed` | `src/pages/Confirmed.tsx` | Resident only (noindex) |
 | `/walkthrough` | `src/pages/Walkthrough.tsx` | Resident only (noindex) |
 | `/resident-hub` | `src/pages/ResidentHub.tsx` | Resident only (noindex) |
@@ -96,7 +98,7 @@ The resident routes require an active Supabase session. Sensitive data still nee
 ## 6. Demo logic to replace (must do before launch)
 
 * [x] Remove the demo sign in rules and use Supabase email OTP without creating users from the sign in flow.
-* [ ] Enable RLS on `public.inquiries` and allow anonymous inserts only. The inquiry form intentionally does not request inserted rows back, so do not add an anonymous SELECT policy:
+* [x ] Enable RLS on `public.inquiries` and allow anonymous inserts only. The inquiry form intentionally does not request inserted rows back, so do not add an anonymous SELECT policy:
 
 ```sql
 alter table public.inquiries enable row level security;
@@ -107,8 +109,8 @@ create policy "public can submit inquiries"
   on public.inquiries for insert to anon with check (true);
 ```
 
-* [ ] In Supabase Auth settings, disable public user sign up, configure custom SMTP for delivery to real guest email addresses, and use `{{ .Token }}` in the email template for six digit codes. Inquiry sign in is provisioned by the private `request-inquiry-otp` Edge Function; deploy it with `supabase functions deploy request-inquiry-otp`.
-* [x] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
+* [x] In Supabase Auth settings, disable public user sign up, configure custom SMTP for delivery to real guest email addresses, and use `{{ .Token }}` in the email template for six digit codes. Inquiry, resident, and allowlisted administrator sign in is provisioned by the private `request-inquiry-otp` Edge Function; deploy it with `supabase functions deploy request-inquiry-otp`. Residents can sign in regardless of stay status.
+* [] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
 * [ ] Move access codes and the wifi password (`ACCESS` in `mockData.ts`) to a table with row level security. Show them only to a signed in resident with an active stay.
 * [ ] Move lease and receipt PDFs out of `public/documents` into a private Storage bucket. Serve them with signed URLs.
 * [ ] Save the Inquiry, Partnership, and Early access forms to tables. Generate Request IDs on the server (`generateRequestId` and `DEMO_REQUEST_ID` in `mockData.ts` are demo only).
@@ -116,6 +118,8 @@ create policy "public can submit inquiries"
 * [ ] Add spam protection: Turnstile or similar, a honeypot field, and a rate limit.
 * [ ] Save walkthrough progress per resident.
 * [ ] Replace the rest of the mock data (`RESIDENT`, `STAY`, `INQUIRY_SUMMARY`, `CONFIRMED_STAY`) with real records.
+* [x] Apply `supabase/migrations/20261115000000_resident_admin.sql`, `supabase/migrations/20261115000100_allow_resident_history.sql`, and `supabase/migrations/20261115000200_repair_resident_admin_policies.sql` in the Supabase SQL Editor. Add an administrator with `insert into public.resident_admins (email) values ('owner@example.com');` using their lowercase sign-in email, then deploy the updated function with `supabase functions deploy request-inquiry-otp`. Administrators sign in at `/admin/sign-in` with their email OTP and can add or update resident records at `/admin`. The admin sign-in request is checked against `public.resident_admins`. Set a resident's status to `active` only after confirming the stay. Residents with a past or pending stay can still sign in; the Resident Hub shows their stay record or a no-stay-information message.
+
 
 ## 7. Launch checklist
 

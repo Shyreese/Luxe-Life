@@ -1,13 +1,24 @@
 import { MinusIcon, PlusIcon } from "../components/icons";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import TopNav from "../components/TopNav";
 import Footer from "../components/Footer";
 import AccentBar from "../components/AccentBar";
 import livingRoomPhoto from "../imports/_M0A6154.webp";
 import loftPhoto from "../imports/image-31.webp";
+import { supabase } from "../utils/supabase";
 
-import { ACCESS, DOCUMENTS, EXTEND_MAILTO, ISSUE_MAILTO, LEASE_PDF, MANAGER, MANAGER_MAILTO as MAILTO, MOVE_IN_LABEL, NEARBY, PARKING, QUICK_ANSWERS, REMINDERS, PROPERTY_ADDRESS, RESIDENT, STAY, STAY_END_LABEL, getStayProgress, pluralDays } from "../data/mockData";
+import { ACCESS, DOCUMENTS, EXTEND_MAILTO, formatIsoDate, ISSUE_MAILTO, LEASE_PDF, MANAGER, MANAGER_MAILTO as MAILTO, NEARBY, PARKING, QUICK_ANSWERS, REMINDERS, PROPERTY_ADDRESS, pluralDays } from "../data/mockData";
 
+type ResidentRecord = {
+  email: string;
+  full_name: string;
+  phone: string | null;
+  property_name: string;
+  property_address: string | null;
+  move_in: string | null;
+  stay_end: string | null;
+  status: "pending" | "active" | "ended";
+};
 
 // Small chat glyph for the "Message Amy" buttons.
 function ChatIcon() {
@@ -116,13 +127,67 @@ const cardBase = "rounded-2xl bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]";
 const cardPad = { padding: "1.75rem" } as const;
 
 export default function ResidentHub() {
+  const [resident, setResident] = useState<ResidentRecord | null>(null);
+  const [accountEmail, setAccountEmail] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
   const [openAnswer, setOpenAnswer] = useState<number | null>(null); // all closed by default
   const [category, setCategory] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState<string | null>(null);
 
   const [showAll, setShowAll] = useState(false);
-  const progress = getStayProgress();
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        const email = userData.user?.email?.trim().toLowerCase();
+        if (!email) {
+          throw new Error("Your signed-in account does not have an email address.");
+        }
+        if (active) setAccountEmail(email);
+
+        const { data, error } = await supabase
+          .from("residents")
+          .select("email, full_name, phone, property_name, property_address, move_in, stay_end, status")
+          .eq("email", email)
+          .maybeSingle();
+        if (error) throw error;
+        if (active) setResident(data as ResidentRecord | null);
+      } catch (error) {
+        if (active) {
+          setProfileError(
+            error instanceof Error ? error.message : "We could not load your stay information.",
+          );
+        }
+      } finally {
+        if (active) setProfileLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const hasStayDates = Boolean(resident?.move_in || resident?.stay_end);
+  const hasCompleteStayDates = Boolean(resident?.move_in && resident?.stay_end);
+  const stayStart = resident?.move_in ? new Date(`${resident.move_in}T00:00:00`).getTime() : null;
+  const stayEnd = resident?.stay_end ? new Date(`${resident.stay_end}T00:00:00`).getTime() : null;
+  const progress = stayStart !== null && stayEnd !== null
+    ? (() => {
+        const start = stayStart;
+        const end = stayEnd;
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+        const totalDays = Math.max(Math.round((end - start) / 86_400_000), 0);
+        const daysSettled = Math.min(Math.max(Math.round((todayStart - start) / 86_400_000), 0), totalDays);
+        return { daysSettled, daysRemaining: totalDays - daysSettled };
+      })()
+    : { daysSettled: 0, daysRemaining: 0 };
 
   const nearby = category
     ? NEARBY.filter((n) => n.category === category)
@@ -137,12 +202,112 @@ export default function ResidentHub() {
     }
   }
 
+  if (profileLoading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-cream">
+        <TopNav signedIn accountName={accountEmail || undefined} accountProperty="" />
+        <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 items-center px-5 py-16" tabIndex={-1}>
+          <p className="text-body">Loading your stay information...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="flex min-h-screen flex-col bg-cream">
+        <TopNav signedIn accountName={accountEmail || undefined} accountProperty="" />
+        <main id="main" className="mx-auto flex w-full max-w-3xl flex-1 items-center px-5 py-16" tabIndex={-1}>
+          <p role="alert" className="rounded-xl bg-white p-6 text-body shadow-sm">
+            We could not load your stay information. {profileError}
+          </p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!resident || resident.status !== "active" || !hasCompleteStayDates) {
+    const hasHistory = Boolean(resident && hasStayDates);
+    return (
+      <div className="flex min-h-screen flex-col bg-cream">
+        <title>{resident?.status === "ended" ? "Previous stay" : "Your stay information"} | LuxeLife Properties</title>
+        <meta name="robots" content="noindex, nofollow" />
+        <TopNav
+          signedIn
+          accountName={resident?.full_name || accountEmail || undefined}
+          accountProperty={resident?.property_name ?? ""}
+        />
+        <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-5 py-12 md:py-16" tabIndex={-1}>
+          <section className="rounded-2xl bg-white p-6 shadow-sm md:p-9">
+            <AccentBar />
+            <p className="mt-4 text-sm font-semibold text-terracotta">
+              {resident?.status === "ended" ? "Stay history" : "Resident account"}
+            </p>
+            <h1 className="mt-2 text-3xl font-bold text-ink">
+              {resident?.status === "ended" ? "Your previous stay" : `Hello${resident?.full_name ? `, ${resident.full_name}` : ""}.`}
+            </h1>
+            {hasHistory && resident ? (
+              <>
+                <p className="mt-3 text-body">
+                  {resident.status === "active"
+                    ? "We have some information about your stay, but its dates are incomplete."
+                    : "Here are the stay details we have for you. This stay is not currently active."}
+                </p>
+                <dl className="mt-7 grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-sm text-muted">Property</dt>
+                    <dd className="mt-1 font-semibold text-ink">{resident.property_name}</dd>
+                  </div>
+                  {resident.property_address && (
+                    <div>
+                      <dt className="text-sm text-muted">Address</dt>
+                      <dd className="mt-1 font-semibold text-ink">{resident.property_address}</dd>
+                    </div>
+                  )}
+                  {resident.move_in && (
+                    <div>
+                      <dt className="text-sm text-muted">Move-in date</dt>
+                      <dd className="mt-1 font-semibold text-ink">{formatIsoDate(resident.move_in)}</dd>
+                    </div>
+                  )}
+                  {resident.stay_end && (
+                    <div>
+                      <dt className="text-sm text-muted">Stay end date</dt>
+                      <dd className="mt-1 font-semibold text-ink">{formatIsoDate(resident.stay_end)}</dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt className="text-sm text-muted">Status</dt>
+                    <dd className="mt-1 font-semibold capitalize text-ink">{resident.status}</dd>
+                  </div>
+                </dl>
+              </>
+            ) : (
+              <p className="mt-3 text-body">
+                We do not have stay information for this account yet. If you expected to see a stay here, please contact {MANAGER.firstName}.
+              </p>
+            )}
+            <a
+              href={MAILTO}
+              className="mt-7 inline-flex min-h-11 items-center rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-ink hover:opacity-90"
+            >
+              Contact {MANAGER.firstName}
+            </a>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-full bg-white">
-      <title>Your stay at The Sacramento Condo | LuxeLife Properties</title>
+      <title>Your stay at {resident.property_name} | LuxeLife Properties</title>
       <meta name="description" content="Your LuxeLife Resident Hub with access details, nearby places, documents, and a direct line to your property manager." />
       <meta name="robots" content="noindex, nofollow" />
-      <TopNav signedIn />
+      <TopNav signedIn accountName={resident.full_name} accountProperty={resident.property_name} />
       <main id="main" tabIndex={-1}>
 
       {/* Scoped layout rules so the two column grid, category row, action row,
@@ -182,7 +347,7 @@ export default function ResidentHub() {
                   className="mt-2 font-bold text-white"
                   style={{ fontSize: "44px", lineHeight: 1.05, letterSpacing: "-1px" }}
                 >
-                  Welcome home, {RESIDENT.firstName}.
+                  Welcome home, {resident.full_name.split(/\s+/)[0]}.
                 </h1>
                 <p className="mt-3 text-[17px] text-white">
                   Here is everything around you and what is coming up.
@@ -196,15 +361,15 @@ export default function ResidentHub() {
                   alt="Living room, kitchen, and loft at The Sacramento Condo."
                   style={{ width: "100%", aspectRatio: "16/10", objectFit: "cover", objectPosition: "55% 55%", borderRadius: "1rem", display: "block" }}
                 />
-                <p className="mt-2 text-[13px] text-white">Your unit, The Sacramento Condo.</p>
+                <p className="mt-2 text-[13px] text-white">Your unit, {resident.property_name}.</p>
               </div>
 
               {/* Property card */}
               <div className={cardBase} style={{ ...cardPad, order: 3 }}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-[20px] font-semibold text-ink">The Sacramento Condo</h2>
-                    <p className="mt-2 text-[15px] text-[#525252]">{PROPERTY_ADDRESS}</p>
+                    <h2 className="text-[20px] font-semibold text-ink">{resident.property_name}</h2>
+                    <p className="mt-2 text-[15px] text-[#525252]">{resident.property_address || PROPERTY_ADDRESS}</p>
                     <p className="mt-1 text-[15px] text-[#525252]">{PARKING.summary}</p>
                   </div>
                   <span className="flex-none rounded-full border border-ink/25 px-3 py-1 text-[13px] font-medium text-ink">
@@ -347,8 +512,8 @@ export default function ResidentHub() {
                   </span>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-[13px] text-[#696969]">
-                  <span>{MOVE_IN_LABEL}</span>
-                  <span>{STAY_END_LABEL}</span>
+                  <span>{formatIsoDate(resident.move_in!)}</span>
+                  <span>{formatIsoDate(resident.stay_end!)}</span>
                 </div>
               </aside>
 
@@ -357,11 +522,13 @@ export default function ResidentHub() {
                 <h2 className="text-[20px] font-semibold text-ink">Your access details</h2>
                 <dl className="mt-4 space-y-3 text-[15px]">
                   {ACCESS.map((r) => {
+                    const value =
+                      r.label === "Stay ends" ? formatIsoDate(resident.stay_end!) : r.value;
                     if (!r.secret) {
                       return (
                         <div key={r.label} className="flex justify-between gap-4">
                           <dt className="text-[#737373]">{r.label}</dt>
-                          <dd className="text-right font-medium text-ink">{r.value}</dd>
+                          <dd className="text-right font-medium text-ink">{value}</dd>
                         </div>
                       );
                     }
@@ -371,7 +538,7 @@ export default function ResidentHub() {
                         <dt className="text-[#737373]">{r.label}</dt>
                         <dd className="flex items-center gap-1 font-medium text-ink">
                           {shown ? (
-                            <span>{r.value}</span>
+                            <span>{value}</span>
                           ) : (
                             <>
                               <span aria-hidden="true" className="tracking-[0.15em]">
@@ -392,7 +559,7 @@ export default function ResidentHub() {
                           <button
                             type="button"
                             aria-label={`Copy ${r.label.toLowerCase()}`}
-                            onClick={() => handleCopy(r.label, r.value)}
+                            onClick={() => handleCopy(r.label, value)}
                             className="flex h-11 w-11 items-center justify-center rounded-full text-ink transition-colors hover:bg-ink/5"
                           >
                             <LineIcon name="copy" className="h-[18px] w-[18px]" />

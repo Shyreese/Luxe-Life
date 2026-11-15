@@ -23,17 +23,20 @@ Deno.serve(async (request: Request) => {
   }
 
   let email: string;
+  let adminLogin = false;
   try {
     const body: unknown = await request.json();
     if (
       typeof body !== "object" ||
       body === null ||
       !("email" in body) ||
-      typeof body.email !== "string"
+      typeof body.email !== "string" ||
+      ("admin_login" in body && typeof body.admin_login !== "boolean")
     ) {
       return jsonResponse({ error: "Enter a valid email address." }, 400);
     }
     email = body.email.trim().toLowerCase();
+    adminLogin = "admin_login" in body && body.admin_login === true;
   } catch {
     return jsonResponse({ error: "Enter a valid email address." }, 400);
   }
@@ -61,21 +64,47 @@ Deno.serve(async (request: Request) => {
   });
 
   try {
-    const escapedEmail = email.replace(/[\\%_]/g, "\\$&");
-    const { data: inquiry, error: inquiryError } = await admin
-      .from("inquiries")
-      .select("id")
-      .ilike("email", escapedEmail)
-      .limit(1)
+    const { data: residentAdmin, error: residentAdminError } = await admin
+      .from("resident_admins")
+      .select("email")
+      .eq("email", email)
       .maybeSingle();
+    if (residentAdminError) throw residentAdminError;
 
-    if (inquiryError) throw inquiryError;
+    if (adminLogin) {
+      if (!residentAdmin) {
+        console.info("Admin OTP request did not match an administrator.");
+        return jsonResponse({ error: "Unable to send an administrator sign-in code." }, 403);
+      }
+    } else {
+      const escapedEmail = email.replace(/[\\%_]/g, "\\$&");
+      const [
+        { data: resident, error: residentError },
+        { data: inquiry, error: inquiryError },
+      ] = await Promise.all([
+        admin
+          .from("residents")
+          .select("id")
+          .eq("email", email)
+          .limit(1)
+          .maybeSingle(),
+        admin
+          .from("inquiries")
+          .select("id")
+          .ilike("email", escapedEmail)
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
-    if (!inquiry) {
-      console.info("OTP request did not match an inquiry.");
-      return jsonResponse({
-        message: "If the email matches an inquiry, a sign-in code will be sent.",
-      });
+      if (residentError) throw residentError;
+      if (inquiryError) throw inquiryError;
+
+      if (!resident && !inquiry) {
+        console.info("OTP request did not match an inquiry or resident.");
+        return jsonResponse({
+          message: "If the email is authorized, a sign-in code will be sent.",
+        });
+      }
     }
 
     const { error: createError } = await admin.auth.admin.createUser({
@@ -93,9 +122,13 @@ Deno.serve(async (request: Request) => {
     });
     if (otpError) throw otpError;
 
-    console.info("OTP request accepted for a matching inquiry.");
+    console.info(
+      adminLogin
+        ? "OTP request accepted for an administrator."
+        : "OTP request accepted for an inquiry or resident.",
+    );
     return jsonResponse({
-      message: "If the email matches an inquiry, a sign-in code will be sent.",
+      message: "If the email is authorized, a sign-in code will be sent.",
     });
   } catch (error) {
     console.error("Unable to request inquiry sign-in OTP:", error);
