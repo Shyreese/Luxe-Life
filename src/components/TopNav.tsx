@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import type { Session } from "@supabase/supabase-js";
 import logo from "../assets/logo.svg";
 import { CloseIcon } from "./icons";
 import { LEASE_PDF, MANAGER, MANAGER_MAILTO, PHONE, PROPERTY_NAME, RESIDENT } from "../data/mockData";
+import { useNavigate } from "react-router";
+import { supabase } from "../utils/supabase";
 
 // Property listings surfaced in the Properties dropdown. The first is live; the
 // second is coming soon and renders visibly disabled (no link).
@@ -26,7 +29,17 @@ function AccountHeader({ accountName, accountProperty }: { accountName: string; 
   );
 }
 
-function AccountItems({ onNavigate, className }: { onNavigate: () => void; className: string }) {
+function AccountItems({
+  onNavigate,
+  onSignOut,
+  signOutError,
+  className,
+}: {
+  onNavigate: () => void;
+  onSignOut: () => Promise<boolean>;
+  signOutError: string;
+  className: string;
+}) {
   return (
     <>
       {ACCOUNT_ITEMS.map((i) => (
@@ -41,9 +54,10 @@ function AccountItems({ onNavigate, className }: { onNavigate: () => void; class
         </a>
       ))}
       <hr className="my-1.5 border-0 border-t border-black/10" />
-      <a href="/sign-in" onClick={onNavigate} className={className}>
+      <button type="button" onClick={() => void onSignOut()} className={`${className} w-full text-left`}>
         Sign out
-      </a>
+      </button>
+      {signOutError && <p role="alert" className="px-4 py-2 text-[12px] text-red-600">{signOutError}</p>}
     </>
   );
 }
@@ -54,10 +68,14 @@ function AccountMenu({
   idSuffix,
   accountName,
   accountProperty,
+  onSignOut,
+  signOutError,
 }: {
   idSuffix: string;
   accountName?: string;
   accountProperty?: string;
+  onSignOut: () => Promise<boolean>;
+  signOutError: string;
 }) {
   const displayName = accountName?.trim() || RESIDENT.fullName;
   const firstName = displayName.split(/\s+/)[0] || RESIDENT.firstName;
@@ -74,6 +92,12 @@ function AccountMenu({
   const wrapRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuId = `account-menu-${idSuffix}`;
+
+  async function handleSignOut(): Promise<boolean> {
+    const didSignOut = await onSignOut();
+    if (didSignOut) setMenuOpen(false);
+    return didSignOut;
+  }
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -136,6 +160,8 @@ function AccountMenu({
             <hr className="mb-1.5 border-0 border-t border-black/10" />
             <AccountItems
               onNavigate={() => setMenuOpen(false)}
+              onSignOut={handleSignOut}
+              signOutError={signOutError}
               className="block px-4 py-2.5 text-[14px] text-ink transition-colors hover:bg-cream focus-visible:bg-cream focus-visible:outline-offset-[-2px]"
             />
           </div>
@@ -167,6 +193,64 @@ export default function TopNav({
   const propsWrapRef = useRef<HTMLDivElement>(null);
   const propsTriggerRef = useRef<HTMLButtonElement>(null);
   const focusFirstItem = useRef(false);
+  const navigate = useNavigate();
+  const [authSession, setAuthSession] = useState<Session | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    let receivedAuthUpdate = false;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION" && !session) return;
+      receivedAuthUpdate = true;
+      if (active) {
+        setAuthSession(session);
+        setAuthChecked(true);
+      }
+    });
+
+    void supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!active || receivedAuthUpdate) return;
+        if (error) {
+          console.error("Could not check the signed-in account.", error);
+        } else {
+          setAuthSession(data.session);
+        }
+        setAuthChecked(true);
+      })
+      .catch((error: unknown) => {
+        if (!active || receivedAuthUpdate) return;
+        console.error("Could not check the signed-in account.", error);
+        setAuthChecked(true);
+      });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const accountSignedIn = signedIn || Boolean(authSession);
+  const displayAccountName = accountName ?? authSession?.user.email ?? undefined;
+
+  async function handleSignOut(): Promise<boolean> {
+    setSignOutError("");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/sign-in", { replace: true });
+      return true;
+    } catch (error) {
+      console.error("Could not sign out.", error);
+      setSignOutError("We could not sign you out. Please try again.");
+      return false;
+    }
+  }
 
   function closeMobileMenu() {
     setOpen(false);
@@ -260,14 +344,14 @@ export default function TopNav({
     }
   }
 
-  const propertiesActive = !signedIn && active === "Properties";
+  const propertiesActive = !accountSignedIn && active === "Properties";
 
   const links = [
     { label: "Home", href: "/" },
     { label: "Properties", dropdown: true }, // opens dropdown, does not navigate
     { label: "Partner with us", href: "/partnership" },
-    ...(signedIn ? [] : [{ label: "Sign in", href: "/sign-in" }]),
-  ].map((l) => ({ ...l, active: !signedIn && l.label === active }));
+    ...(!authChecked || accountSignedIn ? [] : [{ label: "Sign in", href: "/sign-in" }]),
+  ].map((l) => ({ ...l, active: authChecked && !accountSignedIn && l.label === active }));
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-black/5">
@@ -373,13 +457,16 @@ export default function TopNav({
               </a>
             )
           )}
-          {signedIn && (
+          {accountSignedIn && (
             <AccountMenu
               idSuffix="desktop"
-              accountName={accountName}
+              accountName={displayAccountName}
               accountProperty={accountProperty}
+              onSignOut={handleSignOut}
+              signOutError={signOutError}
             />
           )}
+          {!authChecked && !signedIn && <span aria-hidden="true" className="w-16" />}
           <a href={PHONE.tel} className="tap-44 text-[15px] font-semibold text-ink">
             {PHONE.display}
           </a>
@@ -387,11 +474,13 @@ export default function TopNav({
 
         {/* Mobile account button and hamburger */}
         <div className="flex items-center gap-1 md:hidden">
-          {signedIn && (
+          {accountSignedIn && (
             <AccountMenu
               idSuffix="mobile"
-              accountName={accountName}
+              accountName={displayAccountName}
               accountProperty={accountProperty}
+              onSignOut={handleSignOut}
+              signOutError={signOutError}
             />
           )}
           <button
@@ -492,18 +581,25 @@ export default function TopNav({
                 </a>
               )
             )}
-            {signedIn && (
+            {accountSignedIn && (
               <div className="mt-2 border-t border-black/10 pt-3">
                 <AccountHeader
-                  accountName={accountName?.trim() || RESIDENT.fullName}
+                  accountName={displayAccountName?.trim() || RESIDENT.fullName}
                   accountProperty={accountProperty === undefined ? PROPERTY_NAME : accountProperty}
                 />
                 <AccountItems
                   onNavigate={() => setOpen(false)}
+                  onSignOut={async () => {
+                    const didSignOut = await handleSignOut();
+                    if (didSignOut) setOpen(false);
+                    return didSignOut;
+                  }}
+                  signOutError={signOutError}
                   className="flex min-h-[44px] items-center rounded-full px-4 text-lg text-ink"
                 />
               </div>
             )}
+            {!authChecked && !signedIn && <span aria-hidden="true" className="h-11" />}
             <a
               href={PHONE.tel}
               className="mt-2 flex min-h-[44px] items-center px-4 text-lg font-semibold text-ink"

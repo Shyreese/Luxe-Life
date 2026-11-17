@@ -29,22 +29,23 @@ function RequireSession() {
 
   useEffect(() => {
     let active = true;
-    let receivedAuthEvent = false;
+    let receivedAuthUpdate = false;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      receivedAuthEvent = true;
+      if (_event === "INITIAL_SESSION" && !session) return;
+      receivedAuthUpdate = true;
       if (active) setStatus(session ? "signed-in" : "signed-out");
     });
 
     void supabase.auth
       .getSession()
       .then(({ data, error }) => {
-        if (!active || receivedAuthEvent) return;
+        if (!active || receivedAuthUpdate) return;
         setStatus(error ? "error" : data.session ? "signed-in" : "signed-out");
       })
       .catch(() => {
-        if (active && !receivedAuthEvent) setStatus("error");
+        if (active && !receivedAuthUpdate) setStatus("error");
       });
 
     return () => {
