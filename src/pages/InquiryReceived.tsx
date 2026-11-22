@@ -15,7 +15,13 @@ const UNLOCKS = [
   `You can message ${MANAGER.firstName}, your property manager, at any time.`,
 ];
 
-type SubmittedInquiry = { requestId?: string; stayFor?: string; moveIn?: string; length?: string };
+type SubmittedInquiry = {
+  requestId?: string;
+  stayFor?: string;
+  moveIn?: string;
+  length?: string;
+  returnToResidentHub?: boolean;
+};
 
 export default function InquiryReceived() {
   const submitted = (useLocation().state ?? {}) as SubmittedInquiry;
@@ -66,7 +72,7 @@ export default function InquiryReceived() {
               <p className="mt-4 text-[15px] text-muted-tan">Request ID {submitted.requestId}</p>
             )}
             <p className="mt-5 max-w-md text-[17px] leading-relaxed text-[#525252]">
-              {MANAGER.firstName} typically replies within a day. We will send a confirmation to your email.
+              {MANAGER.firstName} typically replies within a day. Your inquiry is pending review, and we will contact you by email.
             </p>
 
             {/* What happens next card */}
@@ -86,12 +92,20 @@ export default function InquiryReceived() {
                   </li>
                 ))}
               </ol>
-              <p className="mt-6 text-[13px] text-[#737373]">
-                Already a resident?{" "}
-                <a href="/sign-in" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">
-                  Sign in
-                </a>
-              </p>
+              {submitted.returnToResidentHub ? (
+                <p className="mt-6 text-[13px] text-[#737373]">
+                  <a href="/resident-hub" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">
+                    View this pending inquiry in your Resident Hub
+                  </a>
+                </p>
+              ) : (
+                <p className="mt-6 text-[13px] text-[#737373]">
+                  Already a resident?{" "}
+                  <a href="/sign-in" className="font-medium text-ink underline underline-offset-2 hover:opacity-80">
+                    Sign in
+                  </a>
+                </p>
+              )}
             </div>
 
             {/* What you get once you move in card */}

@@ -64,7 +64,7 @@ The resident routes require an active Supabase session. Sensitive data still nee
 | Images imported by code (WebP, a few PNG icons, logo) | `src/assets` and `src/imports` |
 | Fonts | `src/fonts` |
 | Global CSS, theme tokens, font faces | `src/index.css` |
-| Favicons, sitemap, demo PDFs | `public` (PDFs are in `public/documents`) |
+| Favicons and sitemap | `public` |
 | Site title, description, robots flag | `.figma/make/site.json` |
 | Document shell | `index.html` |
 
@@ -98,23 +98,29 @@ The resident routes require an active Supabase session. Sensitive data still nee
 ## 6. Demo logic to replace (must do before launch)
 
 * [x] Remove the demo sign in rules and use Supabase email OTP without creating users from the sign in flow.
-* [x ] Enable RLS on `public.inquiries` and allow anonymous inserts only. The inquiry form intentionally does not request inserted rows back, so do not add an anonymous SELECT policy:
+* [x ] Enable RLS on `public.inquiries` and allow insert-only submissions from anonymous and authenticated users. The inquiry form intentionally does not request inserted rows back, so do not add SELECT access:
 
 ```sql
 alter table public.inquiries enable row level security;
 grant insert (booking_for, full_name, email, phone, move_in, length, guest_name, guest_email, guest_phone, guest_org, message)
-  on table public.inquiries to anon;
+  on table public.inquiries to anon, authenticated;
 drop policy if exists "public can submit inquiries" on public.inquiries;
 create policy "public can submit inquiries"
   on public.inquiries for insert to anon with check (true);
+drop policy if exists "authenticated users can submit inquiries" on public.inquiries;
+create policy "authenticated users can submit inquiries"
+  on public.inquiries for insert to authenticated with check (true);
 ```
 
+* [ ] Apply `supabase/migrations/20261122000400_allow_authenticated_inquiries.sql` so signed-in residents can submit new stay inquiries without gaining access to read inquiry records. The Resident Hub's new-inquiry link prefills their contact details; each submission starts with new stay dates and blank guest details.
+* [ ] Apply `supabase/migrations/20261122000500_pending_inquiry_access.sql` so residents can read only their own pending inquiry details and submission dates in the Resident Hub.
 * [x] In Supabase Auth settings, disable public user sign up, configure custom SMTP for delivery to real guest email addresses, and use `{{ .Token }}` in the email template for six digit codes. Inquiry, resident, and allowlisted administrator sign in is provisioned by the private `request-inquiry-otp` Edge Function; deploy it with `supabase functions deploy request-inquiry-otp`. Residents can sign in regardless of stay status.
 * [] Protect `/resident-hub`, `/walkthrough`, and `/confirmed` with a session check. Redirect signed out visitors to `/sign-in`.
 * [ ] Move access codes and the wifi password (`ACCESS` in `mockData.ts`) to a table with row level security. Show them only to a signed in resident with an active stay.
-* [ ] Move lease and receipt PDFs out of `public/documents` into a private Storage bucket. Serve them with signed URLs.
+* [x] Remove the demo resident PDFs from the public site so their URLs cannot expose resident paperwork.
+* [ ] Apply `supabase/migrations/20261122000000_private_resident_documents.sql`, `supabase/migrations/20261122000100_resident_document_read_access.sql`, `supabase/migrations/20261122000200_stay_lease_receipt_documents.sql`, and `supabase/migrations/20261122000300_fix_document_admin_check.sql` after the resident admin migrations. These create a private `resident-documents` bucket and restrict it to two PDFs per stay: `lease.pdf` and `payment-receipt.pdf`, up to 15 MB each. Administrators can manage stay documents; only the resident matching the stay ID and account email can read them, and only while the stay is active or ended. The final migration uses a restricted security-definer helper to check the administrator allowlist without granting residents access to `resident_admins`. In `/admin`, upload one lease and one payment receipt when adding or editing a resident stay. The Resident Hub lists these documents for all that resident's active and previous stays with five-minute signed links. Re-upload any required paperwork through `/admin` and attach it to the correct stay.
 * [ ] Save the Inquiry, Partnership, and Early access forms to tables. Generate Request IDs on the server (`generateRequestId` and `DEMO_REQUEST_ID` in `mockData.ts` are demo only).
-* [ ] Email Amy on every new inquiry. Send a confirmation email to the guest.
+* [ ] Enable business email notifications: set the `RESEND_API_KEY` and a private `INQUIRY_WEBHOOK_SECRET` as Supabase Edge Function secrets, then deploy `send-inquiry-notification` with `supabase functions deploy send-inquiry-notification`. In **Database > Webhooks**, create an `INSERT` webhook for `public.inquiries` pointing to `https://<project-ref>.supabase.co/functions/v1/send-inquiry-notification` and add the `x-webhook-secret` header with the same secret. This sends a notification to `info@luxelp.com` for both public and signed-in inquiries. The function does not send guest confirmation emails.
 * [ ] Add spam protection: Turnstile or similar, a honeypot field, and a rate limit.
 * [ ] Save walkthrough progress per resident.
 * [ ] Replace the rest of the mock data (`RESIDENT`, `STAY`, `INQUIRY_SUMMARY`, `CONFIRMED_STAY`) with real records.

@@ -373,6 +373,7 @@ export default function Product() {
           </div>
         </div>
       </section>
+      
 
       {/* Included */}
       <section id="included" className="scroll-mt-24 bg-white">

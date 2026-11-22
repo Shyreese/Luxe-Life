@@ -7,9 +7,10 @@ import livingRoomPhoto from "../imports/_M0A6154.webp";
 import loftPhoto from "../imports/image-31.webp";
 import { supabase } from "../utils/supabase";
 
-import { ACCESS, DOCUMENTS, EXTEND_MAILTO, formatIsoDate, ISSUE_MAILTO, LEASE_PDF, MANAGER, MANAGER_MAILTO as MAILTO, NEARBY, PARKING, QUICK_ANSWERS, REMINDERS, PROPERTY_ADDRESS, pluralDays } from "../data/mockData";
+import { ACCESS, EXTEND_MAILTO, formatIsoDate, ISSUE_MAILTO, MANAGER, MANAGER_MAILTO as MAILTO, NEARBY, PARKING, QUICK_ANSWERS, REMINDERS, PROPERTY_ADDRESS, pluralDays } from "../data/mockData";
 
 type ResidentRecord = {
+  id: string;
   email: string;
   full_name: string;
   phone: string | null;
@@ -19,6 +20,29 @@ type ResidentRecord = {
   stay_end: string | null;
   status: "pending" | "active" | "ended";
 };
+
+type ResidentDocumentType = "lease" | "payment-receipt";
+type StayDocumentLinks = Record<ResidentDocumentType, string | null>;
+type StayDocuments = Record<string, StayDocumentLinks>;
+
+type PendingInquiry = {
+  id: string;
+  created_at: string;
+  move_in: string;
+  length: string;
+  booking_for: "self" | "someone";
+  guest_name: string | null;
+};
+
+const DOCUMENT_BUCKET = "resident-documents";
+const RESIDENT_DOCUMENT_TYPES: {
+  type: ResidentDocumentType;
+  label: string;
+  fileName: string;
+}[] = [
+  { type: "lease", label: "Lease", fileName: "lease.pdf" },
+  { type: "payment-receipt", label: "Payment receipt", fileName: "payment-receipt.pdf" },
+];
 
 // Small chat glyph for the "Message Amy" buttons.
 function ChatIcon() {
@@ -126,11 +150,131 @@ async function copyText(text: string) {
 const cardBase = "rounded-2xl bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]";
 const cardPad = { padding: "1.75rem" } as const;
 
+function ResidentDocumentsPanel({
+  stays,
+  documents,
+  loading,
+  error,
+}: {
+  stays: ResidentRecord[];
+  documents: StayDocuments;
+  loading: boolean;
+  error: string;
+}) {
+  const eligibleStays = stays.filter((stay) => stay.status === "active" || stay.status === "ended");
+  if (eligibleStays.length === 0) return null;
+
+  return (
+    <aside id="documents" className={cardBase} style={cardPad}>
+      <h2 className="text-[20px] font-semibold text-ink">Your stay documents</h2>
+      <p className="mt-1 text-sm text-body">Leases and payment receipts for your active and previous stays.</p>
+      {loading ? (
+        <p className="mt-4 text-[15px] text-body">Loading your documents...</p>
+      ) : error ? (
+        <p role="alert" className="mt-4 text-[15px] text-red-800">{error}</p>
+      ) : (
+        <div className="mt-4 space-y-5">
+          {eligibleStays.map((stay) => {
+            const stayRange = [
+              stay.move_in ? formatIsoDate(stay.move_in) : null,
+              stay.stay_end ? formatIsoDate(stay.stay_end) : null,
+            ].filter(Boolean).join(" to ") || "Dates not set";
+
+            return (
+              <section key={stay.id} className="border-t border-tan pt-4 first:border-t-0 first:pt-0">
+                <h3 className="font-semibold text-ink">{stay.property_name}</h3>
+                <p className="mt-1 text-sm capitalize text-body">{stayRange} · {stay.status} stay</p>
+                <ul className="mt-3 grid grid-cols-2 gap-3">
+                  {RESIDENT_DOCUMENT_TYPES.map((documentType) => {
+                    const signedUrl = documents[stay.id]?.[documentType.type];
+                    return (
+                      <li key={documentType.type} className="rounded-lg border border-tan p-3 text-sm">
+                        {signedUrl ? (
+                          <a
+                            href={signedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex min-h-11 items-center justify-between gap-2 font-medium text-navy underline"
+                          >
+                            View {documentType.label.toLowerCase()}
+                            <LineIcon name="download" className="h-4 w-4 flex-none" />
+                          </a>
+                        ) : (
+                          <span className="text-body">{documentType.label}: Not uploaded yet</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function PendingInquiriesPanel({
+  inquiries,
+  loading,
+  error,
+}: {
+  inquiries: PendingInquiry[];
+  loading: boolean;
+  error: string;
+}) {
+  return (
+    <aside className={cardBase} style={cardPad}>
+      <h2 className="text-[20px] font-semibold text-ink">Pending inquiries</h2>
+      {loading ? (
+        <p className="mt-4 text-[15px] text-body">Loading your inquiries...</p>
+      ) : error ? (
+        <p role="alert" className="mt-4 text-[15px] text-red-800">{error}</p>
+      ) : inquiries.length === 0 ? (
+        <p className="mt-4 text-[15px] text-body">You have no pending inquiries.</p>
+      ) : (
+        <ul className="mt-4 divide-y divide-tan">
+          {inquiries.map((inquiry) => (
+            <li key={inquiry.id} className="py-4 first:pt-0 last:pb-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-semibold text-ink">
+                  {inquiry.booking_for === "someone" && inquiry.guest_name
+                    ? `Stay inquiry for ${inquiry.guest_name}`
+                    : "Stay inquiry"}
+                </h3>
+                <span className="rounded-full bg-card px-3 py-1 text-xs font-semibold text-ink">Pending</span>
+              </div>
+              <p className="mt-2 text-sm text-body">
+                Sent {new Date(inquiry.created_at).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+              <p className="mt-1 text-sm text-body">
+                Preferred move-in: {formatIsoDate(inquiry.move_in)} · {inquiry.length}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </aside>
+  );
+}
+
 export default function ResidentHub() {
   const [resident, setResident] = useState<ResidentRecord | null>(null);
+  const [residentStays, setResidentStays] = useState<ResidentRecord[]>([]);
   const [accountEmail, setAccountEmail] = useState("");
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState("");
+  const [residentDocuments, setResidentDocuments] = useState<StayDocuments>({});
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [documentsError, setDocumentsError] = useState("");
+  const [pendingInquiries, setPendingInquiries] = useState<PendingInquiry[]>([]);
+  const [pendingInquiriesLoading, setPendingInquiriesLoading] = useState(true);
+  const [pendingInquiriesError, setPendingInquiriesError] = useState("");
   const [openAnswer, setOpenAnswer] = useState<number | null>(null); // all closed by default
   const [category, setCategory] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
@@ -152,11 +296,21 @@ export default function ResidentHub() {
 
         const { data, error } = await supabase
           .from("residents")
-          .select("email, full_name, phone, property_name, property_address, move_in, stay_end, status")
+          .select("id, email, full_name, phone, property_name, property_address, move_in, stay_end, status")
           .eq("email", email)
-          .maybeSingle();
+          .order("move_in", { ascending: false, nullsFirst: false });
         if (error) throw error;
-        if (active) setResident(data as ResidentRecord | null);
+        if (active) {
+          const stays = (data ?? []) as ResidentRecord[];
+          setResidentStays(stays);
+          setResident(
+            stays.find((stay) => stay.status === "active" && stay.move_in && stay.stay_end) ??
+              stays.find((stay) => stay.status === "active") ??
+              stays.find((stay) => stay.status === "ended") ??
+              stays[0] ??
+              null,
+          );
+        }
       } catch (error) {
         if (active) {
           setProfileError(
@@ -172,6 +326,98 @@ export default function ResidentHub() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const eligibleStays = residentStays.filter(
+      (stay) => stay.status === "active" || stay.status === "ended",
+    );
+    if (eligibleStays.length === 0) {
+      setResidentDocuments({});
+      setDocumentsError("");
+      setDocumentsLoading(false);
+      return;
+    }
+
+    let active = true;
+    setDocumentsLoading(true);
+    setDocumentsError("");
+    setResidentDocuments({});
+
+    void (async () => {
+      const storage = supabase.storage.from(DOCUMENT_BUCKET);
+      const documentsByStay = await Promise.all(
+        eligibleStays.map(async (stay) => {
+          const { data, error } = await storage.list(stay.id, { limit: 10 });
+          if (error) throw error;
+          const fileNames = new Set((data ?? []).map((file) => file.name));
+          const links: StayDocumentLinks = { lease: null, "payment-receipt": null };
+
+          for (const documentType of RESIDENT_DOCUMENT_TYPES) {
+            if (!fileNames.has(documentType.fileName)) continue;
+            const { data: signedData, error: signedError } = await storage.createSignedUrl(
+              `${stay.id}/${documentType.fileName}`,
+              300,
+            );
+            if (signedError) {
+              throw new Error(`Could not create a secure link for your ${documentType.label.toLowerCase()}: ${signedError.message}`);
+            }
+            links[documentType.type] = signedData.signedUrl;
+          }
+
+          return [stay.id, links] as const;
+        }),
+      );
+      if (active) setResidentDocuments(Object.fromEntries(documentsByStay));
+    })()
+      .catch((error: unknown) => {
+        if (active) {
+          setDocumentsError(
+            error instanceof Error ? error.message : "We could not load your documents.",
+          );
+          setResidentDocuments({});
+        }
+      })
+      .finally(() => {
+        if (active) setDocumentsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [residentStays]);
+
+  useEffect(() => {
+    if (!accountEmail) return;
+
+    let active = true;
+    setPendingInquiriesLoading(true);
+    setPendingInquiriesError("");
+
+    void (async () => {
+      const { data, error } = await supabase
+        .from("inquiries")
+        .select("id, created_at, move_in, length, booking_for, guest_name")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (active) setPendingInquiries((data ?? []) as PendingInquiry[]);
+    })()
+      .catch((error: unknown) => {
+        if (active) {
+          setPendingInquiriesError(
+            error instanceof Error ? error.message : "We could not load your pending inquiries.",
+          );
+          setPendingInquiries([]);
+        }
+      })
+      .finally(() => {
+        if (active) setPendingInquiriesLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [accountEmail]);
 
   const hasStayDates = Boolean(resident?.move_in || resident?.stay_end);
   const hasCompleteStayDates = Boolean(resident?.move_in && resident?.stay_end);
@@ -289,13 +535,36 @@ export default function ResidentHub() {
                 We do not have stay information for this account yet. If you expected to see a stay here, please contact {MANAGER.firstName}.
               </p>
             )}
-            <a
-              href={MAILTO}
-              className="mt-7 inline-flex min-h-11 items-center rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-ink hover:opacity-90"
-            >
-              Contact {MANAGER.firstName}
-            </a>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href={MAILTO}
+                className="inline-flex min-h-11 items-center rounded-full bg-sage px-5 py-2.5 text-sm font-semibold text-ink hover:opacity-90"
+              >
+                Contact {MANAGER.firstName}
+              </a>
+              <a
+                href="/inquiry?source=resident"
+                className="inline-flex min-h-11 items-center rounded-full border border-ink/20 px-5 py-2.5 text-sm font-semibold text-ink hover:bg-ink/5"
+              >
+                Inquire about another stay
+              </a>
+            </div>
           </section>
+          <div className="mt-6">
+            <ResidentDocumentsPanel
+              stays={residentStays}
+              documents={residentDocuments}
+              loading={documentsLoading}
+              error={documentsError}
+            />
+          </div>
+          <div className="mt-6">
+            <PendingInquiriesPanel
+              inquiries={pendingInquiries}
+              loading={pendingInquiriesLoading}
+              error={pendingInquiriesError}
+            />
+          </div>
         </main>
         <Footer />
       </div>
@@ -386,9 +655,10 @@ export default function ResidentHub() {
                     Message {MANAGER.firstName}
                   </a>
                   {[
+                    { label: "Inquire about another stay", href: "/inquiry?source=resident", newTab: false },
                     { label: "Report an issue", href: ISSUE_MAILTO, newTab: false },
                     { label: "Extend my stay", href: EXTEND_MAILTO, newTab: false },
-                    { label: "View my lease", href: LEASE_PDF, newTab: true },
+                    { label: "View my documents", href: "#documents", newTab: false },
                   ].map((b) => (
                     <a
                       key={b.label}
@@ -652,24 +922,17 @@ export default function ResidentHub() {
               </aside>
 
               {/* 6. Your documents */}
-              <aside className={cardBase} style={cardPad}>
-                <h2 className="text-[20px] font-semibold text-ink">Your documents</h2>
-                <div className="mt-4">
-                  {DOCUMENTS.map((d, i) => (
-                    <a
-                      key={d.label}
-                      href={d.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-4 py-3 text-[15px] text-ink hover:text-ink/70"
-                      style={i > 0 ? { borderTop: "1px solid #E5E5E5" } : undefined}
-                    >
-                      {d.label}
-                      <span className="text-ink"><LineIcon name="download" /></span>
-                    </a>
-                  ))}
-                </div>
-              </aside>
+              <ResidentDocumentsPanel
+                stays={residentStays}
+                documents={residentDocuments}
+                loading={documentsLoading}
+                error={documentsError}
+              />
+              <PendingInquiriesPanel
+                inquiries={pendingInquiries}
+                loading={pendingInquiriesLoading}
+                error={pendingInquiriesError}
+              />
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { formatIsoDate, PRICING, PRICING_NOTES } from "../data/mockData";
 import { CheckBullet } from "../components/icons";
@@ -117,10 +117,72 @@ export default function Inquiry() {
   const forSomeone = bookingFor === "someone";
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const fromResidentAccount = params.get("source") === "resident";
   const today = todayIso();
   const prefillMoveIn = params.get("moveIn") ?? "";
   const prefillMoveOut = params.get("moveOut") ?? "";
   const prefillLength = lengthFromDates(prefillMoveIn, prefillMoveOut);
+
+  const [moveIn, setMoveIn] = useState(prefillMoveIn >= today ? prefillMoveIn : "");
+  const [length, setLength] = useState(prefillLength);
+  const [contactInfo, setContactInfo] = useState({ fullName: "", email: "", phone: "" });
+  const [contactLoading, setContactLoading] = useState(fromResidentAccount);
+  const [contactError, setContactError] = useState("");
+
+  useEffect(() => {
+    if (!fromResidentAccount) return;
+
+    let active = true;
+    setContactLoading(true);
+    setContactError("");
+
+    void (async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      const email = userData.user?.email?.trim().toLowerCase();
+      if (!email) throw new Error("Your signed-in account does not have an email address.");
+
+      const metadataName =
+        typeof userData.user?.user_metadata?.full_name === "string"
+          ? userData.user.user_metadata.full_name
+          : typeof userData.user?.user_metadata?.name === "string"
+            ? userData.user.user_metadata.name
+            : "";
+      if (active) {
+        setContactInfo({ fullName: metadataName, email, phone: "" });
+      }
+
+      const { data: resident, error: residentError } = await supabase
+        .from("residents")
+        .select("full_name, phone")
+        .eq("email", email)
+        .order("move_in", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      if (residentError) throw residentError;
+      if (active) {
+        setContactInfo({
+          fullName: resident?.full_name || metadataName,
+          email,
+          phone: resident?.phone ?? "",
+        });
+      }
+    })()
+      .catch((error: unknown) => {
+        if (active) {
+          setContactError(
+            error instanceof Error ? error.message : "We could not load your account details.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setContactLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [fromResidentAccount]);
 
   return (
     <div className="min-h-full bg-white">
@@ -202,6 +264,7 @@ export default function Inquiry() {
           stayFor: bookingFor === "self" ? "Yourself" : "Someone else",
           moveIn: formatIsoDate(String(data.get("moveIn") ?? "")),
           length: String(data.get("length") ?? ""),
+          returnToResidentHub: fromResidentAccount,
         },
       });
     }}
@@ -211,6 +274,16 @@ export default function Inquiry() {
           <div className="md:col-start-1 md:row-start-1">
             <AccentBar />
             <h2 className="text-[26px] font-semibold text-ink">Your details</h2>
+            {fromResidentAccount && (
+              <p className="mt-2 text-[14px] text-body">
+                Your account contact details are prefilled. Enter new stay dates and, if needed, different guest details.
+              </p>
+            )}
+            {contactError && (
+              <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+                We could not load all of your account details: {contactError}
+              </p>
+            )}
 
             <p className="mt-6 text-[14px] font-medium text-[#404040]">Who is this stay for?</p>
             <div className="mt-3 flex flex-col gap-3 sm:flex-row">
@@ -231,13 +304,34 @@ export default function Inquiry() {
                 <FieldLabel htmlFor="fullName" required>
                   Full name
                 </FieldLabel>
-                <input id="fullName" name="fullName" type="text" required placeholder="Your name" className={inputCls} />
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  required
+                  placeholder="Your name"
+                  value={contactInfo.fullName}
+                  onChange={(event) => setContactInfo((current) => ({ ...current, fullName: event.target.value }))}
+                  disabled={contactLoading}
+                  className={inputCls}
+                />
               </div>
               <div>
                 <FieldLabel htmlFor="email" required>
                   Email
                 </FieldLabel>
-                <input id="email" name="email" type="email" required placeholder="you@example.com" className={inputCls} />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="you@example.com"
+                  value={contactInfo.email}
+                  onChange={(event) => setContactInfo((current) => ({ ...current, email: event.target.value }))}
+                  readOnly={fromResidentAccount && Boolean(contactInfo.email)}
+                  disabled={contactLoading}
+                  className={inputCls}
+                />
               </div>
             </div>
 
@@ -245,7 +339,16 @@ export default function Inquiry() {
               <FieldLabel htmlFor="phone" optional>
                 Phone number
               </FieldLabel>
-              <input id="phone" name="phone" type="tel" placeholder="(916) 555 0000" className={inputCls} />
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="(916) 555 0000"
+                value={contactInfo.phone}
+                onChange={(event) => setContactInfo((current) => ({ ...current, phone: event.target.value }))}
+                disabled={contactLoading}
+                className={inputCls}
+              />
             </div>
 
             <div className="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
@@ -259,7 +362,8 @@ export default function Inquiry() {
                   type="date"
                   required
                   min={today}
-                  defaultValue={prefillMoveIn >= today ? prefillMoveIn : ""}
+                  value={moveIn}
+                  onChange={(e) => setMoveIn(e.target.value)}
                   className={`${inputCls} text-[#525252]`}
                 />
               </div>
@@ -267,7 +371,14 @@ export default function Inquiry() {
                 <FieldLabel htmlFor="length" required>
                   Length of stay
                 </FieldLabel>
-                <select id="length" name="length" required defaultValue={prefillLength} className={`${inputCls} text-[#525252]`}>
+                <select
+                  id="length"
+                  name="length"
+                  required
+                  value={length}
+                  onChange={(e) => setLength(e.target.value)}
+                  className={`${inputCls} text-[#525252]`}
+    >
                   <option value="" disabled>
                     Select length of stay
                   </option>
@@ -343,11 +454,13 @@ export default function Inquiry() {
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-[#737373]">Move in</dt>
-                <dd className="text-right text-[#737373]">Not selected yet</dd>
+                <dd className="text-right text-[#737373]">
+                {moveIn ? formatIsoDate(moveIn) : "Not selected yet"}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-[#737373]">Length</dt>
-                <dd className="text-right text-[#737373]">Not selected yet</dd>
+                <dd className="text-right text-[#737373]">{length || "Not selected yet"}</dd>
               </div>
             </dl>
 
@@ -375,7 +488,8 @@ export default function Inquiry() {
           <div className="md:col-start-1 md:row-start-2">
             <button
               type="submit"
-              className="flex min-h-[44px] w-full items-center justify-center rounded-full bg-sage px-8 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 sm:w-auto"
+              disabled={contactLoading}
+              className="flex min-h-[44px] w-full items-center justify-center rounded-full bg-sage px-8 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-60 sm:w-auto"
             >
               Send inquiry
             </button>

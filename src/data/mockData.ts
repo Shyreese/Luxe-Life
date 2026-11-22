@@ -92,14 +92,6 @@ export const ACCESS = [
   { label: "Wifi password", value: "welcome2100", secret: true },
 ];
 
-export const LEASE_PDF = "/documents/signed-lease-agreement.pdf";
-
-export const DOCUMENTS = [
-  { label: "Signed lease agreement", href: LEASE_PDF },
-  { label: "Payment receipt, September 2026", href: "/documents/payment-receipt-september-2026.pdf" },
-  { label: "Move in walkthrough summary", href: "/documents/move-in-walkthrough-summary.pdf" },
-];
-
 export const INQUIRY_SUMMARY = {
   property: PROPERTY_NAME,
   stayFor: "Yourself",

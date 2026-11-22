@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent }
 import type { Session } from "@supabase/supabase-js";
 import logo from "../assets/logo.svg";
 import { CloseIcon } from "./icons";
-import { LEASE_PDF, MANAGER, MANAGER_MAILTO, PHONE, PROPERTY_NAME, RESIDENT } from "../data/mockData";
+import { MANAGER, MANAGER_MAILTO, PHONE, PROPERTY_NAME, RESIDENT } from "../data/mockData";
 import { useNavigate } from "react-router";
 import { supabase } from "../utils/supabase";
 
@@ -16,7 +16,7 @@ const PROPERTIES = [
 
 const ACCOUNT_ITEMS = [
   { label: "My stay", href: "/resident-hub" },
-  { label: "View my lease", href: LEASE_PDF, newTab: true },
+  { label: "View my documents", href: "/resident-hub#documents" },
   { label: `Message ${MANAGER.firstName}`, href: MANAGER_MAILTO },
 ];
 
