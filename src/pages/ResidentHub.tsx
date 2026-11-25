@@ -215,6 +215,48 @@ function ResidentDocumentsPanel({
   );
 }
 
+function ResidentStaysPanel({
+  stays,
+  accountEmail,
+}: {
+  stays: ResidentRecord[];
+  accountEmail: string;
+}) {
+  if (stays.length === 0) return null;
+
+  return (
+    <aside className={cardBase} style={cardPad}>
+      <h2 className="text-[20px] font-semibold text-ink">All your stays ({stays.length})</h2>
+      <p className="mt-1 text-sm text-body">
+        Stays linked to your account, {accountEmail}.
+      </p>
+      <ul className="mt-4 divide-y divide-tan">
+        {stays.map((stay) => {
+          const stayRange = [
+            stay.move_in ? formatIsoDate(stay.move_in) : null,
+            stay.stay_end ? formatIsoDate(stay.stay_end) : null,
+          ].filter(Boolean).join(" to ") || "Dates not set";
+
+          return (
+            <li key={stay.id} className="flex flex-wrap items-start justify-between gap-3 py-4 first:pt-0 last:pb-0">
+              <div>
+                <h3 className="font-semibold text-ink">{stay.property_name}</h3>
+                <p className="mt-1 text-sm text-body">{stayRange}</p>
+                {stay.property_address && (
+                  <p className="mt-1 text-sm text-body">{stay.property_address}</p>
+                )}
+              </div>
+              <span className="rounded-full bg-card px-3 py-1 text-xs font-semibold capitalize text-ink">
+                {stay.status}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </aside>
+  );
+}
+
 function PendingInquiriesPanel({
   inquiries,
   loading,
@@ -297,7 +339,7 @@ export default function ResidentHub() {
         const { data, error } = await supabase
           .from("residents")
           .select("id, email, full_name, phone, property_name, property_address, move_in, stay_end, status")
-          .eq("email", email)
+          .ilike("email", email.replace(/[\\%_]/g, "\\$&"))
           .order("move_in", { ascending: false, nullsFirst: false });
         if (error) throw error;
         if (active) {
@@ -551,6 +593,9 @@ export default function ResidentHub() {
             </div>
           </section>
           <div className="mt-6">
+            <ResidentStaysPanel stays={residentStays} accountEmail={accountEmail} />
+          </div>
+          <div className="mt-6">
             <ResidentDocumentsPanel
               stays={residentStays}
               documents={residentDocuments}
@@ -786,6 +831,8 @@ export default function ResidentHub() {
                   <span>{formatIsoDate(resident.stay_end!)}</span>
                 </div>
               </aside>
+
+              <ResidentStaysPanel stays={residentStays} accountEmail={accountEmail} />
 
               {/* 2. Your access details */}
               <aside className={cardBase} style={cardPad}>
